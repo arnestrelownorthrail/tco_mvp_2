@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Betriebskostenvergleich Traxx Shunter</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Betriebskostenvergleich</h1>
+      <p class="sub">Traxx Shunter E-Diesel im Vergleich zu Bestandsloks</p>
+    </div>
+    <div class="actions">
+      <button type="button" id="reset" title="Standardannahmen in alle Eingabefelder übernehmen">Annahmen zurücksetzen</button>
+      <button type="button" id="print" class="secondary">Drucken / PDF</button>
+    </div>
+  </header>
+
+  <main>
+    <p class="hint"><span class="swatch"></span> Eingabefelder &nbsp;·&nbsp; alle anderen Felder werden automatisch berechnet.</p>
+
+    <div class="table-wrap">
+      <table id="sheet">
+        <colgroup>
+          <col class="c-label"><col class="c-unit"><col class="c-central">
+        </colgroup>
+        <thead>
+          <tr id="head-row">
+            <th></th><th>Einheit</th><th>Zentrale Inputs<br><span class="muted">für alle Loktypen</span></th>
+          </tr>
+        </thead>
+        <tbody id="assumptions"></tbody>
+        <tbody id="results"></tbody>
+      </table>
+    </div>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <p class="footnote">* exkl. Versicherungskosten. Alle Kosten in € pro Monat und Lok.</p>
+  </main>
+
+  <script src="format.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

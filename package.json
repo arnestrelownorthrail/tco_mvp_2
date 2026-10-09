@@ -1,0 +1,8 @@
+{
+  "name": "tco-mvp-frontend-tests",
+  "private": true,
+  "description": "Tests der Browser-Logik (Zahlen-Ein-/Ausgabe). Keine Abhängigkeiten nötig.",
+  "scripts": {
+    "test": "node --test \"tests/frontend/*.test.js\""
+  }
+}

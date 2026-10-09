@@ -1,0 +1,91 @@
+{
+  "_info": "Unkritische Daten (Kundenansicht). Sensible Stammdaten stehen in model-data.sensitive.json (nicht im Repo, siehe model-data.sensitive.example.json).",
+  "referenceLocoId": "traxx",
+  "customerDefaults": {
+    "mileageKmPerYear": 40000,
+    "operatingHoursPerYear": 3000,
+    "rollingShare": 0.5,
+    "electricShare": 0.7,
+    "shuntingShare": 0.5,
+    "dieselPricePerLiter": 1.8,
+    "electricityPricePerKwh": 0.15,
+    "locomotives": {
+      "g1206": {
+        "dieselShuntingLitersPerKm": 4.8,
+        "dieselMainlineLitersPerKm": 3.5,
+        "dieselParkedLitersPerHour": 13.5
+      },
+      "de18-3a": {
+        "startStopShare": 0,
+        "dieselShuntingLitersPerKm": 6.0,
+        "dieselMainlineLitersPerKm": 3.5,
+        "dieselParkedLitersPerHour": 13
+      },
+      "de18-5sh": {
+        "startStopShare": 0.5,
+        "dieselShuntingLitersPerKm": 5.4,
+        "dieselMainlineLitersPerKm": 3.5,
+        "dieselParkedLitersPerHour": 13
+      },
+      "vdm": {
+        "dieselShuntingLitersPerKm": 6.5,
+        "dieselMainlineLitersPerKm": 3.5,
+        "dieselParkedLitersPerHour": 13,
+        "kwhPerKm": 16,
+        "kwhPerHourParked": 30
+      },
+      "traxx": {
+        "startStopShare": 0.1,
+        "dieselShuntingLitersPerKm": 4.9,
+        "dieselMainlineLitersPerKm": 3.5,
+        "dieselParkedLitersPerHour": 7,
+        "kwhPerKm": 13,
+        "kwhPerHourParked": 30
+      }
+    }
+  },
+  "locomotives": [
+    {
+      "id": "g1206",
+      "name": "G1206 / Gravita",
+      "subtitle": "20 Jahre, ohne Start-Stop",
+      "visibleToCustomer": true,
+      "electricCapable": false,
+      "startStopEditable": false,
+      "fixedStartStopShare": 0
+    },
+    {
+      "id": "de18-3a",
+      "name": "DE18 Stage IIIA",
+      "subtitle": "5 Jahre, inkl. Start-Stop",
+      "visibleToCustomer": true,
+      "electricCapable": false,
+      "startStopEditable": true
+    },
+    {
+      "id": "de18-5sh",
+      "name": "DE 18 Stage V",
+      "subtitle": "SmartHybrid",
+      "visibleToCustomer": true,
+      "electricCapable": false,
+      "startStopEditable": true
+    },
+    {
+      "id": "vdm",
+      "name": "VDM",
+      "subtitle": "Einmotorig",
+      "visibleToCustomer": true,
+      "electricCapable": true,
+      "startStopEditable": false,
+      "fixedStartStopShare": 0
+    },
+    {
+      "id": "traxx",
+      "name": "Traxx Shunter E-Diesel",
+      "subtitle": "Zweimotorig",
+      "visibleToCustomer": true,
+      "electricCapable": true,
+      "startStopEditable": true
+    }
+  ]
+}

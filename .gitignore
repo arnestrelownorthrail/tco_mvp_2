@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------------------
+# SENSIBLE DATEN – firmenintern, niemals einchecken
+# ---------------------------------------------------------------------------
+# Stammdaten: Leasingraten, Verfügbarkeiten, Wartungs- und Vertragspreise,
+# ausgeblendete Loks (Vorlage: src/TcoMvp.Web/Data/model-data.sensitive.example.json)
+**/model-data.sensitive.json
+
+# Excel-Quelldateien (Original = Backend, Vertriebsversion mit ausgeblendeten Reitern)
+excel/
+*.xlsx
+*.xlsm
+
+# Excel-Referenzwerte der Tests (enthalten Leasing- und Wartungskosten je Lok)
+tests/TcoMvp.Tests/Fixtures/excel-scenarios.json
+
+# Erzeugte Vergleichsberichte Excel vs. Web-App
+reports/
+
+# ---------------------------------------------------------------------------
+# Build-Artefakte / IDE
+# ---------------------------------------------------------------------------
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+TestResults/

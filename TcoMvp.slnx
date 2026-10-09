@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TcoMvp.Core/TcoMvp.Core.csproj" />
+    <Project Path="src/TcoMvp.Web/TcoMvp.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TcoMvp.Tests/TcoMvp.Tests.csproj" />
+  </Folder>
+</Solution>
