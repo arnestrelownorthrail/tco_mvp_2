@@ -21,6 +21,10 @@
   <main>
     <p class="hint"><span class="swatch"></span> Eingabefelder &nbsp;·&nbsp; alle anderen Felder werden automatisch berechnet.</p>
 
+    <fieldset id="loco-filter" class="loco-filter">
+      <legend>Loks im Vergleich</legend>
+    </fieldset>
+
     <div class="table-wrap">
       <table id="sheet">
         <colgroup>
@@ -35,6 +39,19 @@
         <tbody id="results"></tbody>
       </table>
     </div>
+
+    <section class="chart-card" aria-labelledby="chart-title">
+      <div class="chart-head">
+        <h2 id="chart-title">Betriebskosten* je Lok <span class="muted">€ / Monat</span></h2>
+        <div class="chart-legend">
+          <span><i class="key s-rent"></i>Miete und Instandhaltung</span>
+          <span><i class="key s-energy"></i>Energiekosten</span>
+          <span><i class="key ref-line"></i>Traxx Shunter (Referenz)</span>
+        </div>
+      </div>
+      <div id="chart" class="chart"></div>
+      <div id="chart-tip" class="chart-tip" hidden></div>
+    </section>
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
     <p class="footnote">* exkl. Versicherungskosten. Alle Kosten in € pro Monat und Lok.</p>

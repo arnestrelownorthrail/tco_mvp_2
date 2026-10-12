@@ -4,12 +4,17 @@
 "use strict";
 
 const STORAGE_KEY = "tco-mvp-inputs-v1";
+const HIDDEN_KEY = "tco-mvp-hidden-locos-v1";
 const { nf, pct0, formatValue, toInputText, parseInput, isValid } = window.TcoFormat;
 const fmtEuro = nf(0);
 
 let model = null;   // { locomotives: [...], defaults: {...} }
 let inputs = null;  // aktueller Eingabestand
 let pending = null;
+let hidden = new Set(); // IDs der ausgeblendeten Loks (Standard: alle sichtbar)
+let lastResult = null;
+
+const visibleLocos = () => model.locomotives.filter((l) => !hidden.has(l.id));
 
 // ---- Zeilendefinition (entspricht Betriebskosten!D5:K30) ---------------------------------
 // kind: "central" = Spalte "Zentrale Inputs", "loco" = je Lok
@@ -44,7 +49,8 @@ const ROWS = [
 // ---- Aufbau der Tabelle -------------------------------------------------------------------
 function buildHeader() {
   const tr = document.getElementById("head-row");
-  for (const l of model.locomotives) {
+  while (tr.children.length > 3) tr.lastChild.remove();
+  for (const l of visibleLocos()) {
     const th = document.createElement("th");
     if (l.isReference) th.className = "ref";
     th.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(l.subtitle)}</span>`;
@@ -82,7 +88,7 @@ function makeInput(row, get, set) {
 function renderAssumptions() {
   const body = document.getElementById("assumptions");
   body.replaceChildren();
-  const colCount = 3 + model.locomotives.length;
+  const colCount = 3 + visibleLocos().length;
 
   for (const row of ROWS) {
     const tr = document.createElement("tr");
@@ -102,11 +108,11 @@ function renderAssumptions() {
       if (row.kind === "central") {
         if (row.key) tr.appendChild(td(null, makeInput(row, () => inputs[row.key], (v) => (inputs[row.key] = v))));
         else { const c = td("calc", formatValue(row, row.calc(inputs))); row._calcCells = [[c, null]]; tr.appendChild(c); }
-        for (const l of model.locomotives) tr.appendChild(td(l.isReference ? "ref" : ""));
+        for (const l of visibleLocos()) tr.appendChild(td(l.isReference ? "ref" : ""));
       } else {
         tr.appendChild(td());
         row._calcCells = [];
-        for (const l of model.locomotives) {
+        for (const l of visibleLocos()) {
           const cls = l.isReference ? "ref" : "";
           if (row.when && !row.when(l)) { tr.appendChild(td(cls)); continue; }
           const li = inputs.locomotives[l.id];
@@ -143,7 +149,7 @@ const RESULT_ROWS = [
 function renderResults(result) {
   const body = document.getElementById("results");
   body.replaceChildren();
-  const colCount = 3 + model.locomotives.length;
+  const colCount = 3 + visibleLocos().length;
 
   const head = document.createElement("tr");
   head.className = "section";
@@ -155,7 +161,7 @@ function renderResults(result) {
     const tr = document.createElement("tr");
     tr.className = "result" + (row.total ? " total" : "");
     tr.append(td(null, row.label), td(null, "€ / Monat"), td());
-    for (const l of model.locomotives) {
+    for (const l of visibleLocos()) {
       const r = byId[l.id];
       let cls = l.isReference ? "ref" : "";
       let text = "";
@@ -173,6 +179,122 @@ function renderResults(result) {
     }
     body.appendChild(tr);
   }
+  renderChart(result);
+}
+
+// ---- Diagramm: gestapelte Balken je Lok (Miete und Instandhaltung + Energie) -------------
+const CHART_SEGMENTS = [
+  { key: "rentAndMaintenance", label: "Miete und Instandhaltung", cls: "s-rent" },
+  { key: "energyCost", label: "Energiekosten", cls: "s-energy" },
+];
+
+function renderChart(result) {
+  const chart = document.getElementById("chart");
+  chart.replaceChildren();
+  const byId = Object.fromEntries((result?.locomotives ?? []).map((r) => [r.id, r]));
+  const locos = visibleLocos();
+  const totals = locos.map((l) => byId[l.id]?.totalOperatingCost).filter((v) => typeof v === "number");
+  const max = Math.max(0, ...totals);
+  const ref = byId[model.locomotives.find((l) => l.isReference)?.id]?.totalOperatingCost;
+  const euro = (v) => fmtEuro.format(v) + " €";
+
+  for (const l of locos) {
+    const r = byId[l.id];
+    const row = document.createElement("div");
+    row.className = "chart-row" + (l.isReference ? " ref" : "");
+
+    const name = document.createElement("div");
+    name.className = "chart-name";
+    name.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(l.isReference ? "Referenz" : l.subtitle)}</span>`;
+
+    const track = document.createElement("div");
+    track.className = "chart-track";
+    const value = document.createElement("div");
+    value.className = "chart-value";
+
+    if (r && typeof r.totalOperatingCost === "number" && max > 0) {
+      const bar = document.createElement("div");
+      bar.className = "chart-bar";
+      bar.style.width = `${(r.totalOperatingCost / max) * 100}%`;
+      for (const s of CHART_SEGMENTS) {
+        const v = r[s.key];
+        if (!(v > 0)) continue;
+        const seg = document.createElement("div");
+        seg.className = `chart-seg ${s.cls}`;
+        seg.style.flexGrow = v;
+        seg.dataset.tip = `${l.name}\n${s.label}: ${euro(v)}\nSumme: ${euro(r.totalOperatingCost)}`;
+        bar.appendChild(seg);
+      }
+      track.appendChild(bar);
+      const d = r.differenceToReference;
+      value.innerHTML = `<strong>${euro(r.totalOperatingCost)}</strong>` +
+        (typeof d === "number" ? `<br><span class="muted">${d > 0 ? "+" : ""}${euro(d)} ggü. Referenz</span>` : "");
+    } else if (r) {
+      value.innerHTML = `<span class="muted">n. v.</span>`;
+    }
+    row.append(name, track, value);
+    chart.appendChild(row);
+  }
+
+  // Senkrechte Referenzlinie bei der Summe der Traxx Shunter
+  if (typeof ref === "number" && max > 0) {
+    for (const track of chart.querySelectorAll(".chart-track")) {
+      const line = document.createElement("div");
+      line.className = "chart-ref";
+      line.style.left = `${(ref / max) * 100}%`;
+      track.appendChild(line);
+    }
+  }
+}
+
+function setupChartTooltip() {
+  const chart = document.getElementById("chart");
+  const tip = document.getElementById("chart-tip");
+  chart.addEventListener("mousemove", (e) => {
+    const seg = e.target.closest(".chart-seg");
+    if (!seg) { tip.hidden = true; return; }
+    tip.textContent = seg.dataset.tip;
+    tip.hidden = false;
+    const box = chart.parentElement.getBoundingClientRect();
+    tip.style.left = `${e.clientX - box.left + 12}px`;
+    tip.style.top = `${e.clientY - box.top + 12}px`;
+  });
+  chart.addEventListener("mouseleave", () => { tip.hidden = true; });
+}
+
+// ---- Lok-Filter ---------------------------------------------------------------------------
+function buildLocoFilter() {
+  const box = document.getElementById("loco-filter");
+  for (const l of model.locomotives) {
+    const label = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !hidden.has(l.id);
+    if (l.isReference) {
+      // Die Referenzlok (Traxx Shunter) ist immer Teil des Vergleichs.
+      cb.disabled = true;
+      label.className = "locked";
+      label.title = "Referenzlok – immer im Vergleich";
+    }
+    cb.addEventListener("change", () => {
+      if (cb.checked) hidden.delete(l.id); else hidden.add(l.id);
+      try { localStorage.setItem(HIDDEN_KEY, JSON.stringify([...hidden])); } catch { /* optional */ }
+      buildHeader();
+      renderAssumptions();
+      renderResults(lastResult);
+    });
+    label.append(cb, l.name);
+    box.appendChild(label);
+  }
+}
+
+function loadHidden() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? "[]");
+    const ids = new Set(model.locomotives.filter((l) => !l.isReference).map((l) => l.id));
+    if (Array.isArray(saved)) return new Set(saved.filter((id) => ids.has(id)));
+  } catch { /* ignorieren */ }
+  return new Set();
 }
 
 // ---- Server-Kommunikation -----------------------------------------------------------------
@@ -198,6 +320,7 @@ async function calculate() {
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const result = await res.json();
+    lastResult = result;
     renderResults(result);
     const errors = result.locomotives.filter((l) => l.error).map((l) => l.error);
     status.textContent = errors.join(" ");
@@ -218,6 +341,9 @@ async function init() {
   const res = await fetch("/api/model");
   model = await res.json();
   inputs = loadInputs();
+  hidden = loadHidden();
+  buildLocoFilter();
+  setupChartTooltip();
   buildHeader();
   renderAssumptions();
   renderResults(null);
