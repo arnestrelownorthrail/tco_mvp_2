@@ -22,12 +22,16 @@
   }
 
   /**
-   * Text aus dem Eingabefeld → Zahl (Prozentfelder → Anteil 0..1). NaN bei ungültiger Eingabe.
+   * Text aus dem Eingabefeld → Zahl (Prozentfelder → Anteil 0..1). NaN bei ungültiger Eingabe,
+   * also bei allem außer Ziffern, Vorzeichen, Komma/Punkt und Leerzeichen. Ein %-Zeichen ist nur am
+   * Ende eines Prozentfelds erlaubt.
    * "1,8" und "1.8" → 1,8. Ein Punkt gilt nur dann als Tausendertrenner, wenn zusätzlich ein Komma
    * vorkommt ("40.000,5") oder das Feld ganzzahlig ist und genau Dreiergruppen folgen ("40.000").
    */
   function parseInput(row, text) {
-    let t = String(text).trim().replace(/\s|%/g, "");
+    let t = String(text).trim();
+    if (row.pct && t.endsWith("%")) t = t.slice(0, -1);
+    t = t.replace(/\s/g, "");
     if (t === "") return NaN;
     const integerField = row.digits === 0;
     if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
@@ -37,9 +41,12 @@
     return row.pct ? n / 100 : n;
   }
 
-  /** Gleiche Regeln wie InputValidator auf dem Server: endlich, ≥ 0, Prozent ≤ 100 %. */
+  /** Technische Obergrenze, wie InputValidator.MaxValue auf dem Server. */
+  const MAX_VALUE = 1e9;
+
+  /** Gleiche Regeln wie InputValidator auf dem Server: endlich, 0 ≤ v ≤ MAX_VALUE, Prozent ≤ 100 %, Preise > 0. */
   function isValid(row, v) {
-    return Number.isFinite(v) && v >= 0 && (!row.pct || v <= 1);
+    return Number.isFinite(v) && v >= 0 && v <= MAX_VALUE && (!row.pct || v <= 1) && (!row.positive || v > 0);
   }
 
   const api = { nf, pct0, formatValue, toInputText, parseInput, isValid };

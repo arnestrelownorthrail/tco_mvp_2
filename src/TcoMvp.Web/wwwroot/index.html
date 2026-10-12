@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="sticky-top">
   <header class="topbar">
     <div>
       <h1>Betriebskostenvergleich</h1>
@@ -18,13 +19,16 @@
     </div>
   </header>
 
-  <main>
+  <div class="controls">
     <p class="hint"><span class="swatch"></span> Eingabefelder &nbsp;·&nbsp; alle anderen Felder werden automatisch berechnet.</p>
 
     <fieldset id="loco-filter" class="loco-filter">
       <legend>Loks im Vergleich</legend>
     </fieldset>
+  </div>
+  </div>
 
+  <main>
     <div class="table-wrap">
       <table id="sheet">
         <colgroup>
@@ -58,6 +62,7 @@
   </main>
 
   <script src="format.js"></script>
+  <script src="rows.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

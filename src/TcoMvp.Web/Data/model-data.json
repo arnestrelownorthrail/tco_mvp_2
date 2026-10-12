@@ -48,7 +48,7 @@
     {
       "id": "g1206",
       "name": "G1206 / Gravita",
-      "subtitle": "20 Jahre, ohne Start-Stop",
+      "subtitle": "ohne Start-Stop",
       "visibleToCustomer": true,
       "electricCapable": false,
       "startStopEditable": false,
@@ -57,7 +57,7 @@
     {
       "id": "de18-3a",
       "name": "DE18 Stage IIIA",
-      "subtitle": "5 Jahre, inkl. Start-Stop",
+      "subtitle": "inkl. Start-Stop",
       "visibleToCustomer": true,
       "electricCapable": false,
       "startStopEditable": true

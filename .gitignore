@@ -5,6 +5,9 @@
 # ausgeblendete Loks (Vorlage: src/TcoMvp.Web/Data/model-data.sensitive.example.json)
 **/model-data.sensitive.json
 
+# Im Admin-Bereich geänderte Standardannahmen (Laufzeitdaten)
+**/customer-defaults.json
+
 # Excel-Quelldateien (Original = Backend, Vertriebsversion mit ausgeblendeten Reitern)
 excel/
 *.xlsx

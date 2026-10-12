@@ -44,10 +44,23 @@ dotnet run --project src/TcoMvp.Web --urls http://localhost:5080
 
 Danach http://localhost:5080 öffnen.
 
+## Admin-Bereich: Standardannahmen ändern
+
+http://localhost:5080/admin – Standardannahmen bearbeiten, speichern oder auf die Werte aus
+`model-data.json` zurücksetzen. Gespeicherte Werte gelten sofort für „Annahmen zurücksetzen“ und für
+Besucher ohne eigene, im Browser gespeicherte Eingaben.
+
+- Schutz per HTTP Basic, Benutzername beliebig, Passwort aus `Admin:Password`
+  (im Betrieb: Umgebungsvariable `Admin__Password`). Ohne Passwort ist der Admin-Bereich abgeschaltet (404).
+  In `appsettings.Development.json` steht für die lokale Entwicklung `admin`.
+- Gespeichert wird in `Data/customer-defaults.json` (nicht im Repo, Pfad über `CustomerDefaultsPath`
+  änderbar). `model-data.json` bleibt unverändert.
+
 ## API
 
 - `GET /api/model` – Loks der Kundenansicht und Standardannahmen
 - `POST /api/calculate` – Eingaben (`CustomerInputs`) → Betriebskosten je Lok
+- `GET` / `PUT` / `DELETE /api/admin/defaults` – Standardannahmen lesen / speichern / zurücksetzen (Admin)
 
 ## Tests
 
@@ -65,6 +78,7 @@ npm test         # Browser-Logik (Zahlen-Ein-/Ausgabe), nur Node nötig – kein
 | `ExcelFunctionsTests` | XLOOKUP (exakt/nächstgrößer), MATCH, SLOPE | nein |
 | `InputValidatorTests` | Eingabeprüfung | nein |
 | `ApiTests` | Endpunkte, Fehlercodes, keine internen Felder in Antworten, Datendateien nicht abrufbar, Start ohne sensible Daten schlägt fehl | nein (Beispieldaten) |
+| `AdminApiTests` | Admin-Bereich: Passwortschutz, Speichern/Zurücksetzen der Standardannahmen, Übernahme in `/api/model` und nach Neustart | nein (Beispieldaten) |
 | `DataSeparationTests` | unkritische Datei und API-Antworten enthalten keine sensiblen Felder | nein |
 | `tests/frontend/format.test.js` | Zahleneingabe deutsch („40.000", „1,8"), Prozentfelder, Validierung | nein |
 

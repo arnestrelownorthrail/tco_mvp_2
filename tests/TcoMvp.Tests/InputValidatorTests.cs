@@ -22,6 +22,8 @@ public class InputValidatorTests
     [InlineData(-1)]
     [InlineData(double.NaN)]
     [InlineData(double.PositiveInfinity)]
+    [InlineData(1e9 + 1)]
+    [InlineData(1e200)]
     public void Mileage_must_be_finite_and_not_negative(double km)
         => Assert.Contains(nameof(CustomerInputs.MileageKmPerYear), InputValidator.Validate(Data, Defaults with { MileageKmPerYear = km }).Keys);
 
@@ -43,6 +45,14 @@ public class InputValidatorTests
         => Assert.Empty(InputValidator.Validate(Data, Defaults with { RollingShare = share, ElectricShare = share, ShuntingShare = share }));
 
     [Fact]
+    public void Prices_must_be_greater_than_zero()
+    {
+        var errors = InputValidator.Validate(Data, Defaults with { DieselPricePerLiter = 0, ElectricityPricePerKwh = 0 });
+        Assert.Contains(nameof(CustomerInputs.DieselPricePerLiter), errors.Keys);
+        Assert.Contains(nameof(CustomerInputs.ElectricityPricePerKwh), errors.Keys);
+    }
+
+    [Fact]
     public void Prices_must_not_be_negative()
     {
         var errors = InputValidator.Validate(Data, Defaults with { DieselPricePerLiter = -1, ElectricityPricePerKwh = -0.1 });
@@ -55,6 +65,14 @@ public class InputValidatorTests
         var errors = InputValidator.Validate(Data, Defaults with { Locomotives = new() });
         Assert.Equal(5, errors.Count);
         Assert.Contains("Locomotives.traxx", errors.Keys);
+    }
+
+    [Fact]
+    public void Null_locomotive_inputs_are_reported_not_crashed()
+    {
+        Assert.Contains("Locomotives", InputValidator.Validate(Data, Defaults with { Locomotives = null! }).Keys);
+        Assert.Contains("Locomotives.traxx",
+            InputValidator.Validate(Data, WithLoco("traxx", _ => null!)).Keys);
     }
 
     [Fact]

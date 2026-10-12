@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin – Standardannahmen</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Standardannahmen</h1>
+      <p class="sub">Admin · Werte für „Annahmen zurücksetzen“ und für neue Besucher</p>
+    </div>
+    <div class="actions">
+      <button type="button" id="save">Speichern</button>
+      <button type="button" id="discard" class="secondary">Änderungen verwerfen</button>
+      <button type="button" id="restore" class="secondary" title="Gespeicherte Änderungen löschen und die Werte aus model-data.json verwenden">Auslieferungswerte</button>
+      <a class="button secondary" href="/">Zur Kundenansicht</a>
+    </div>
+  </header>
+
+  <main>
+    <p class="hint"><span class="swatch"></span> Eingabefelder &nbsp;·&nbsp; <span class="swatch changed"></span> abweichend vom Auslieferungswert (Wert im Tooltip)</p>
+    <p id="origin" class="hint"></p>
+
+    <div class="table-wrap">
+      <table id="sheet">
+        <colgroup>
+          <col class="c-label"><col class="c-unit"><col class="c-central">
+        </colgroup>
+        <thead>
+          <tr id="head-row">
+            <th></th><th>Einheit</th><th>Zentrale Inputs<br><span class="muted">für alle Loktypen</span></th>
+          </tr>
+        </thead>
+        <tbody id="assumptions"></tbody>
+      </table>
+    </div>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <p class="footnote">Gespeicherte Werte gelten sofort für „Annahmen zurücksetzen“ und für Besucher ohne eigene, im Browser gespeicherte Eingaben.</p>
+  </main>
+
+  <script src="/format.js"></script>
+  <script src="/rows.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

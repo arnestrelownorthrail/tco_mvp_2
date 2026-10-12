@@ -8,11 +8,17 @@ using TcoMvp.Core.Model;
 
 namespace TcoMvp.Tests;
 
-/// <summary>Startet die Web-App im Testhost mit der angegebenen sensiblen Datei.</summary>
+/// <summary>
+/// Startet die Web-App im Testhost mit der angegebenen sensiblen Datei. Lokal im Admin-Bereich
+/// gespeicherte Standardannahmen werden ignoriert (Pfad zeigt auf eine nicht vorhandene Datei).
+/// </summary>
 public sealed class TcoAppFactory(string sensitivePath) : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
-        => builder.UseSetting("SensitiveModelDataPath", sensitivePath);
+    {
+        builder.UseSetting("SensitiveModelDataPath", sensitivePath);
+        builder.UseSetting("CustomerDefaultsPath", Path.Combine(Path.GetTempPath(), $"customer-defaults-{Guid.NewGuid():N}.json"));
+    }
 }
 
 /// <summary>HTTP-Tests der API mit fiktiven Beispieldaten (laufen immer).</summary>
@@ -95,10 +101,32 @@ public class ApiTests : IClassFixture<ApiTests.ExampleApp>
     [Theory]
     [InlineData("{ kein json")]
     [InlineData("{\"mileageKmPerYear\": \"viel\"}")]
+    [InlineData("{\"mileageKmPerYear\": \"40000\"}")]
+    [InlineData("{\"rollingShare\": \"70%\"}")]
     public async Task Malformed_json_returns_400(string body)
     {
         var res = await _client.PostAsync("/api/calculate", new StringContent(body, Encoding.UTF8, "application/json"));
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("{\"locomotives\": null}")]
+    [InlineData("{\"locomotives\": {\"traxx\": null}}")]
+    [InlineData("{\"mileageKmPerYear\": 1e200}")]
+    public async Task Null_or_huge_inputs_return_400_not_500(string body)
+    {
+        var res = await _client.PostAsync("/api/calculate", new StringContent(body, Encoding.UTF8, "application/json"));
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/api/model")]
+    public async Task Security_headers_are_set(string path)
+    {
+        var res = await _client.GetAsync(path);
+        Assert.Contains("frame-ancestors 'none'", res.Headers.GetValues("Content-Security-Policy").Single());
+        Assert.Equal("nosniff", res.Headers.GetValues("X-Content-Type-Options").Single());
     }
 
     [Fact]
@@ -152,6 +180,8 @@ public class ApiExcelParityTests
         var client = factory.CreateClient();
         var scenarios = JsonSerializer.Deserialize<List<Scenario>>(File.ReadAllText(SensitiveData.FixturesPath), ModelDataLoader.JsonOptions)!
             .Where(s => s.LoadFactor == 0.15) // Load factor ist keine API-Eingabe
+            // Energiepreise 0 lehnt die API ab (Preise > 0); gerechnet wird das Szenario in ExcelParityTests.
+            .Where(s => s.Inputs.DieselPricePerLiter > 0 && s.Inputs.ElectricityPricePerKwh > 0)
             .ToList();
         Assert.NotEmpty(scenarios);
 

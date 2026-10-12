@@ -25,12 +25,13 @@ public static class CustomerView
 
     public sealed record Result(IReadOnlyList<LocoCosts> Locomotives);
 
-    public static ModelInfo Describe(ModelData data) => new(
+    /// <param name="defaults">Aktuelle Standardannahmen; Standard: die aus model-data.json.</param>
+    public static ModelInfo Describe(ModelData data, CustomerInputs? defaults = null) => new(
         data.Locomotives
             .Where(l => l.VisibleToCustomer)
             .Select(l => new LocoInfo(l.Id, l.Name, l.Subtitle, l.StartStopEditable, l.ElectricCapable, l.Id == data.ReferenceLocoId))
             .ToList(),
-        data.CustomerDefaults);
+        defaults ?? data.CustomerDefaults);
 
     public static Result From(ModelData data, TcoResult tco)
     {

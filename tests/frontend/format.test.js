@@ -8,7 +8,7 @@ const f = require(path.join(__dirname, "../../src/TcoMvp.Web/wwwroot/format.js")
 
 const KM = { digits: 0 };          // Kilometer, Stunden
 const LITRES = { digits: 1 };      // Liter / km
-const PRICE = { digits: 2 };       // € / Liter
+const PRICE = { digits: 2, positive: true }; // € / Liter
 const PCT = { pct: true };         // Prozentfelder
 
 test("ganzzahlige Felder akzeptieren Tausenderpunkte", () => {
@@ -39,8 +39,23 @@ test("Prozentfelder werden in Anteile umgerechnet, %-Zeichen ist erlaubt", () =>
   assert.equal(f.parseInput(PCT, "12,5"), 0.125);
 });
 
+test("%-Zeichen nur am Ende eines Prozentfelds", () => {
+  assert.equal(f.parseInput(PCT, "70%"), 0.7);
+  assert.ok(Number.isNaN(f.parseInput(PCT, "%70")));
+  assert.ok(Number.isNaN(f.parseInput(PCT, "7%0")));
+  assert.ok(Number.isNaN(f.parseInput(PCT, "70%%")));
+  assert.ok(Number.isNaN(f.parseInput(KM, "40000%")));
+  assert.ok(Number.isNaN(f.parseInput(PRICE, "1,8 %")));
+});
+
+test("Preise müssen größer als 0 sein", () => {
+  assert.ok(!f.isValid(PRICE, 0));
+  assert.ok(f.isValid(PRICE, 0.01));
+  assert.ok(f.isValid(LITRES, 0));
+});
+
 test("ungültige Eingaben ergeben NaN", () => {
-  for (const t of ["", "   ", "abc", "1,2,3", "12a", "1..2", "--5"]) {
+  for (const t of ["", "   ", "abc", "1,2,3", "12a", "1..2", "--5", "1e5", "0x10", "Infinity", "€1,8", "1,8 €"]) {
     assert.ok(Number.isNaN(f.parseInput(PRICE, t)), `"${t}" sollte NaN sein`);
   }
 });
@@ -51,6 +66,8 @@ test("isValid entspricht den Server-Regeln", () => {
   assert.ok(!f.isValid(KM, -1));
   assert.ok(!f.isValid(KM, NaN));
   assert.ok(!f.isValid(KM, Infinity));
+  assert.ok(f.isValid(KM, 1e9));
+  assert.ok(!f.isValid(KM, 1e9 + 1));
   assert.ok(f.isValid(PCT, 1));
   assert.ok(!f.isValid(PCT, 1.01));
 });

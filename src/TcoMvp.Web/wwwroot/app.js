@@ -4,8 +4,9 @@
 "use strict";
 
 const STORAGE_KEY = "tco-mvp-inputs-v1";
+const BASE_KEY = "tco-mvp-inputs-base-v1"; // Standardannahmen, auf denen die gespeicherten Eingaben beruhen
 const HIDDEN_KEY = "tco-mvp-hidden-locos-v1";
-const { nf, pct0, formatValue, toInputText, parseInput, isValid } = window.TcoFormat;
+const { nf, formatValue, toInputText, parseInput, isValid } = window.TcoFormat;
 const fmtEuro = nf(0);
 
 let model = null;   // { locomotives: [...], defaults: {...} }
@@ -16,35 +17,7 @@ let lastResult = null;
 
 const visibleLocos = () => model.locomotives.filter((l) => !hidden.has(l.id));
 
-// ---- Zeilendefinition (entspricht Betriebskosten!D5:K30) ---------------------------------
-// kind: "central" = Spalte "Zentrale Inputs", "loco" = je Lok
-const ROWS = [
-  { section: "Annahmen" },
-  { group: "Nutzungsprofil des Kunden" },
-  { label: "Kilometer", unit: "km / Jahr", kind: "central", key: "mileageKmPerYear", digits: 0 },
-  { label: "Stunden (aufgerüstet)", unit: "Stunden / Jahr", kind: "central", key: "operatingHoursPerYear", digits: 0 },
-  { label: "davon rollende Stunden", unit: "%", kind: "central", key: "rollingShare", pct: true },
-  { label: "davon parkende Stunden", unit: "%", kind: "central", calc: (i) => 1 - i.rollingShare, pct: true },
-  { label: "Parkende Stunden mit laufendem Dieselmotor", unit: "%", kind: "loco", when: (l) => l.startStopEditable,
-    calc: (li) => 1 - (li.startStopShare ?? 0), pct: true },
-  { label: "Parkende Stunden ohne laufenden Dieselmotor (Start-Stop)", unit: "%", kind: "loco", when: (l) => l.startStopEditable,
-    key: "startStopShare", pct: true },
-  { spacer: true },
-  { label: "(Möglicher) elektrifizierter Streckenanteil (Kilometer und Stunden)", unit: "%", kind: "central", key: "electricShare", pct: true },
-  { label: "Streckenanteil mit Diesel", unit: "%", kind: "central", calc: (i) => 1 - i.electricShare, pct: true },
-  { label: (i) => `Anteil Rangieren an den ${pct0(1 - i.electricShare)} Streckenanteil Diesel`, unit: "%", kind: "central", key: "shuntingShare", pct: true },
-  { label: (i) => `Anteil Streckenfahrt an den ${pct0(1 - i.electricShare)} Streckenanteil Diesel`, unit: "%", kind: "central", calc: (i) => 1 - i.shuntingShare, pct: true },
-  { group: "Energieverbrauch und -kosten" },
-  { label: "Diesel pro km, Rangierbetrieb", unit: "Liter / km", kind: "loco", key: "dieselShuntingLitersPerKm", digits: 1 },
-  { label: "Diesel pro km, Streckenbetrieb", unit: "Liter / km", kind: "loco", key: "dieselMainlineLitersPerKm", digits: 1 },
-  { label: "Diesel pro geparkter Stunde mit laufendem Motor", unit: "Liter / Stunde", kind: "loco", key: "dieselParkedLitersPerHour", digits: 1 },
-  { spacer: true },
-  { label: "kWh / km", unit: "kWh / km", kind: "loco", when: (l) => l.electricCapable, key: "kwhPerKm", digits: 0 },
-  { label: "kWh / Stunde, parkend", unit: "kWh / Stunde", kind: "loco", when: (l) => l.electricCapable, key: "kwhPerHourParked", digits: 0 },
-  { spacer: true },
-  { label: "Dieselpreis / Liter", unit: "€ / Liter", kind: "central", key: "dieselPricePerLiter", digits: 2 },
-  { label: "Strompreis / kWh", unit: "€ / kWh", kind: "central", key: "electricityPricePerKwh", digits: 2 },
-];
+const ROWS = window.TcoRows;
 
 // ---- Aufbau der Tabelle -------------------------------------------------------------------
 function buildHeader() {
@@ -103,6 +76,7 @@ function renderAssumptions() {
     } else {
       const labelCell = td(null, typeof row.label === "function" ? row.label(inputs) : row.label);
       if (typeof row.label === "function") row._labelCell = labelCell;
+      if (row.indent) labelCell.classList.add(`indent-${row.indent}`);
       tr.append(labelCell, td(null, row.unit));
 
       if (row.kind === "central") {
@@ -228,7 +202,7 @@ function renderChart(result) {
       track.appendChild(bar);
       const d = r.differenceToReference;
       value.innerHTML = `<strong>${euro(r.totalOperatingCost)}</strong>` +
-        (typeof d === "number" ? `<br><span class="muted">${d > 0 ? "+" : ""}${euro(d)} ggü. Referenz</span>` : "");
+        (typeof d === "number" ? `<br><span class="muted ${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${d > 0 ? "+" : ""}${euro(d)} ggü. Referenz</span>` : "");
     } else if (r) {
       value.innerHTML = `<span class="muted">n. v.</span>`;
     }
@@ -300,7 +274,10 @@ function loadHidden() {
 // ---- Server-Kommunikation -----------------------------------------------------------------
 function onChange() {
   refreshDerived();
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(inputs)); } catch { /* optional */ }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(inputs));
+    localStorage.setItem(BASE_KEY, JSON.stringify(model.defaults));
+  } catch { /* optional */ }
   clearTimeout(pending);
   pending = setTimeout(calculate, 200);
 }
@@ -331,10 +308,20 @@ async function calculate() {
 
 function loadInputs() {
   try {
+    // Wurden die Standardannahmen seitdem im Admin-Bereich geändert, gelten die neuen Werte.
+    if (localStorage.getItem(BASE_KEY) !== JSON.stringify(model.defaults)) return structuredClone(model.defaults);
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
     if (saved && saved.locomotives && model.locomotives.every((l) => saved.locomotives[l.id])) return saved;
   } catch { /* ignorieren */ }
   return structuredClone(model.defaults);
+}
+
+// Tabellenkopf klebt direkt unter dem festen Kopfbereich
+function setupStickyOffset() {
+  const bar = document.querySelector(".sticky-top");
+  const set = () => document.documentElement.style.setProperty("--sticky-h", `${bar.offsetHeight}px`);
+  new ResizeObserver(set).observe(bar);
+  set();
 }
 
 async function init() {
@@ -344,6 +331,7 @@ async function init() {
   hidden = loadHidden();
   buildLocoFilter();
   setupChartTooltip();
+  setupStickyOffset();
   buildHeader();
   renderAssumptions();
   renderResults(null);
