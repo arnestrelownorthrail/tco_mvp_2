@@ -49,7 +49,35 @@
     return Number.isFinite(v) && v >= 0 && v <= MAX_VALUE && (!row.pct || v <= 1) && (!row.positive || v > 0);
   }
 
-  const api = { nf, pct0, formatValue, toInputText, parseInput, isValid };
+  /** Fehlermeldung zu einer ungültigen Eingabe (v = parseInput-Ergebnis); "" wenn gültig. */
+  function errorText(row, v) {
+    if (isValid(row, v)) return "";
+    if (!Number.isFinite(v)) return "Bitte eine Zahl eingeben.";
+    if (v < 0) return "Der Wert darf nicht negativ sein.";
+    if (row.pct && v > 1) return "Maximal 100 % möglich.";
+    if (row.positive && v <= 0) return "Der Wert muss größer als 0 sein.";
+    return "Der Wert ist zu groß.";
+  }
+
+  /** Verpackt das Eingabefeld mit einer Fehlerzeile darunter; setError("") blendet sie aus. */
+  function withError(input) {
+    const wrap = document.createElement("span");
+    wrap.className = "field";
+    const msg = document.createElement("small");
+    msg.className = "field-error";
+    msg.hidden = true;
+    msg.id = `err-${Math.random().toString(36).slice(2)}`;
+    wrap.append(input, msg);
+    const setError = (text) => {
+      msg.textContent = text;
+      msg.hidden = !text;
+      input.toggleAttribute("aria-invalid", !!text);
+      if (text) input.setAttribute("aria-describedby", msg.id); else input.removeAttribute("aria-describedby");
+    };
+    return { wrap, setError };
+  }
+
+  const api = { nf, pct0, formatValue, toInputText, parseInput, isValid, errorText, withError };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.TcoFormat = api;
 })(this);

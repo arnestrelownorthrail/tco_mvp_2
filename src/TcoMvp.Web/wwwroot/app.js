@@ -6,7 +6,7 @@
 const STORAGE_KEY = "tco-mvp-inputs-v1";
 const BASE_KEY = "tco-mvp-inputs-base-v1"; // Standardannahmen, auf denen die gespeicherten Eingaben beruhen
 const HIDDEN_KEY = "tco-mvp-hidden-locos-v1";
-const { nf, formatValue, toInputText, parseInput, isValid } = window.TcoFormat;
+const { nf, formatValue, toInputText, parseInput, isValid, errorText, withError } = window.TcoFormat;
 const fmtEuro = nf(0);
 
 let model = null;   // { locomotives: [...], defaults: {...} }
@@ -49,14 +49,16 @@ function makeInput(row, get, set) {
   el.inputMode = "decimal";
   el.value = toInputText(row, get());
   el.setAttribute("aria-label", rowLabel(row));
+  const { wrap, setError } = withError(el);
   el.addEventListener("input", () => {
     const v = parseInput(row, el.value);
     const ok = isValid(row, v);
     el.classList.toggle("invalid", !ok);
+    setError(errorText(row, v));
     if (ok) { set(v); onChange(); }
   });
   el.addEventListener("blur", () => { if (!el.classList.contains("invalid")) el.value = toInputText(row, get()); });
-  return el;
+  return wrap;
 }
 
 // Block "Zentrale Inputs": gilt für alle Loks, getrennt von der Lok-Tabelle

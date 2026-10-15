@@ -161,6 +161,12 @@ input {
   background: var(--input-bg); border: 1px solid var(--input-line); border-radius: 6px;
 }
 input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+/* Eingabefeld mit Fehlermeldung darunter */
+.field { display: inline-block; vertical-align: top; }
+.field-error { display: block; margin-top: 2px; max-width: 92px; text-align: right; font-size: 11px; line-height: 1.25; color: var(--bad); white-space: normal; }
+.central-row .field { justify-self: end; }
+.central-row .field-error { max-width: 100%; }
+.field-error[hidden] { display: none; }
 input.invalid { border-color: var(--bad); background: #fdecea; }
 .calc { color: var(--muted); }
 
@@ -276,7 +282,7 @@ input.changed, .swatch.changed { border-color: var(--accent-ink); box-shadow: in
   .central-row, .central-row.indent-1, .central-row input, .central-row .calc { font-size: 11px; }
   thead th { box-shadow: inset 0 -2px 0 #000; }
   .sticky-top { background: #fff; }
-  .actions, .hint, .status, .loco-filter { display: none; }
+  .actions, .hint, .status, .loco-filter, .field-error { display: none; }
   .topbar { background: #fff; color: var(--text); padding: 0 0 8px; border-bottom: none; }
   .topbar .logo { filter: brightness(0); }
   .topbar .sub { color: var(--muted); }

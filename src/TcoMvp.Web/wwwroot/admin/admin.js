@@ -1,7 +1,7 @@
 // Admin-Bereich: Standardannahmen der Kundenansicht bearbeiten (/api/admin/defaults).
 "use strict";
 
-const { toInputText, parseInput, isValid } = window.TcoFormat;
+const { toInputText, parseInput, isValid, errorText, withError } = window.TcoFormat;
 // Nur Eingabezeilen; berechnete Zeilen haben keine Standardannahme
 const editable = (rows) => rows.filter((r) => r.section || r.group || r.key);
 const ROWS = { central: editable(window.TcoRows.central), loco: editable(window.TcoRows.loco) };
@@ -46,6 +46,7 @@ function makeInput(row, id, get, set, original) {
   el.inputMode = "decimal";
   el.value = toInputText(row, get());
   el.setAttribute("aria-label", label(row));
+  const { wrap, setError } = withError(el);
   const markChanged = () => {
     const changed = get() !== original;
     el.classList.toggle("changed", changed);
@@ -56,11 +57,12 @@ function makeInput(row, id, get, set, original) {
     const v = parseInput(row, el.value);
     const ok = isValid(row, v);
     el.classList.toggle("invalid", !ok);
+    setError(errorText(row, v));
     if (ok) { invalid.delete(id); set(v); markChanged(); refreshLabels(); } else invalid.add(id);
     updateButtons();
   });
   el.addEventListener("blur", () => { if (!el.classList.contains("invalid")) el.value = toInputText(row, get()); });
-  return el;
+  return wrap;
 }
 
 function renderCentral() {
