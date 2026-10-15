@@ -281,6 +281,13 @@ input.changed, .swatch.changed { border-color: var(--accent-ink); box-shadow: in
   thead th { font-size: 9px; padding: 3px 4px; }
   thead th .muted, thead th br { display: none; }
   .central-row, .central-row.indent-1, .central-row input, .central-row .calc { font-size: 11px; }
+  /* Zentrale Inputs im Druck dreispaltig und kompakt, damit Seite 1 auch bei längeren englischen Texten reicht */
+  .central-inputs { padding: 4px 14px 8px; }
+  .central-grid { grid-template-columns: repeat(3, 1fr); gap: 0 18px; }
+  .central-row { grid-template-columns: 1fr 44px 54px; gap: 6px; min-height: 0; padding: 2px 0; }
+  .central-row.indent-1 { padding-left: 8px; }
+  .central-group h3 { margin: 6px 0 2px; padding-bottom: 3px; }
+  .central-inputs .block-title { margin: 6px 0 2px; }
   thead th { box-shadow: inset 0 -2px 0 #000; }
   .sticky-top { background: #fff; }
   .actions, .hint, .status, .loco-filter, .field-error { display: none; }
