@@ -4,11 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin – Standardannahmen</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/northrail-favicon-32.png">
   <link rel="stylesheet" href="/styles.css">
+  <script src="/theme.js"></script>
 </head>
 <body>
   <header class="topbar">
-    <div>
+    <a href="/"><img class="logo" src="/images/northrail-logo.svg" alt="Northrail"></a>
+    <div class="titles">
       <h1>Standardannahmen</h1>
       <p class="sub">Admin · Werte für „Annahmen zurücksetzen“ und für neue Besucher</p>
     </div>
@@ -17,6 +20,7 @@
       <button type="button" id="discard" class="secondary">Änderungen verwerfen</button>
       <button type="button" id="restore" class="secondary" title="Gespeicherte Änderungen löschen und die Werte aus model-data.json verwenden">Auslieferungswerte</button>
       <a class="button secondary" href="/">Zur Kundenansicht</a>
+      <button type="button" id="theme-toggle" class="secondary theme-toggle">Hell</button>
     </div>
   </header>
 

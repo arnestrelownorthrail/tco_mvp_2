@@ -4,18 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Betriebskostenvergleich Traxx Shunter</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="images/northrail-favicon-32.png">
   <link rel="stylesheet" href="styles.css">
+  <script src="theme.js"></script>
 </head>
 <body>
   <div class="sticky-top">
   <header class="topbar">
-    <div>
+    <img class="logo" src="images/northrail-logo.svg" alt="Northrail">
+    <div class="titles">
       <h1>Betriebskostenvergleich</h1>
       <p class="sub">Traxx Shunter E-Diesel im Vergleich zu Bestandsloks</p>
     </div>
     <div class="actions">
       <button type="button" id="reset" title="Standardannahmen in alle Eingabefelder übernehmen">Annahmen zurücksetzen</button>
       <button type="button" id="print" class="secondary">Drucken / PDF</button>
+      <button type="button" id="theme-toggle" class="secondary theme-toggle">Hell</button>
     </div>
   </header>
 
@@ -65,6 +69,7 @@
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
     <p class="footnote">* exkl. Versicherungskosten. Alle Kosten in € pro Monat und Lok.</p>
+    <p class="print-date" id="print-date"></p>
   </main>
 
   <script src="format.js"></script>

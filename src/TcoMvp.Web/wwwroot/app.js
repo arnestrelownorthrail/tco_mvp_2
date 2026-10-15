@@ -373,3 +373,6 @@ async function init() {
 }
 
 init().catch((e) => { document.getElementById("status").textContent = "Laden fehlgeschlagen: " + e.message; });
+
+// Druckdatum (Fußzeile im PDF); steht hier statt inline, weil die CSP keine Inline-Skripte erlaubt
+document.getElementById("print-date").textContent = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
