@@ -133,7 +133,8 @@ col.c-unit { width: 9%; }
 
 th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 th:first-child, td:first-child { text-align: left; white-space: normal; }
-td:nth-child(2) { text-align: left; color: var(--muted); }
+th:nth-child(2), td:nth-child(2) { text-align: left; }
+td:nth-child(2) { color: var(--muted); }
 td.indent-1, td.indent-2 { color: var(--muted); font-size: 13px; }
 td.indent-1 { padding-left: 24px; box-shadow: inset 2px 0 0 #c9d0da; }
 td.indent-2 { padding-left: 40px; box-shadow: inset 2px 0 0 #c9d0da, inset 16px 0 0 var(--surface), inset 18px 0 0 #c9d0da; }
@@ -173,6 +174,9 @@ input.invalid { border-color: var(--bad); background: #fdecea; }
 
 tr.total td { font-weight: 700; border-top: 2px solid var(--text); }
 tr.result td { font-variant-numeric: tabular-nums; }
+tr.result:last-child td { border-bottom: none; }
+tr.result:last-child td:first-child { border-bottom-left-radius: var(--radius); }
+tr.result:last-child td:last-child { border-bottom-right-radius: var(--radius); }
 /* Kostenunterschied zur Referenz: + (Lok teurer als Traxx) grün, − rot */
 td.pos, .chart-value .pos { color: var(--good); }
 td.neg, .chart-value .neg { color: var(--bad); }
