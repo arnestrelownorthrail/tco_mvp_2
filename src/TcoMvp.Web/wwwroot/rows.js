@@ -3,6 +3,7 @@
 
 (function () {
   const { pct0 } = window.TcoFormat;
+  const T = (...a) => window.TcoI18n.T(...a);
 
   window.TcoRows = {
     central: [
@@ -14,8 +15,8 @@
       { group: "Streckenprofil" },
       { label: "(Möglicher) elektrifizierter Streckenanteil (Kilometer und Stunden)", unit: "%", key: "electricShare", pct: true },
       { label: "Streckenanteil mit Diesel", unit: "%", calc: (i) => 1 - i.electricShare, pct: true },
-      { label: (i) => `davon Rangieren (an ${pct0(1 - i.electricShare)} Diesel)`, indent: 1, unit: "%", key: "shuntingShare", pct: true },
-      { label: (i) => `davon Streckenfahrt (an ${pct0(1 - i.electricShare)} Diesel)`, indent: 1, unit: "%", calc: (i) => 1 - i.shuntingShare, pct: true },
+      { label: (i) => T("davon Rangieren (an {0} Diesel)", pct0(1 - i.electricShare)), indent: 1, unit: "%", key: "shuntingShare", pct: true },
+      { label: (i) => T("davon Streckenfahrt (an {0} Diesel)", pct0(1 - i.electricShare)), indent: 1, unit: "%", calc: (i) => 1 - i.shuntingShare, pct: true },
       { group: "Energiepreise" },
       { label: "Dieselpreis / Liter", unit: "€ / Liter", key: "dieselPricePerLiter", digits: 2, positive: true },
       { label: "Strompreis / kWh", unit: "€ / kWh", key: "electricityPricePerKwh", digits: 2, positive: true },

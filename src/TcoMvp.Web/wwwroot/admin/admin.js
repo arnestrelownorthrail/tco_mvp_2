@@ -1,6 +1,7 @@
 // Admin-Bereich: Standardannahmen der Kundenansicht bearbeiten (/api/admin/defaults).
 "use strict";
 
+const { T, TS } = window.TcoI18n;
 const { toInputText, parseInput, isValid, errorText, withError } = window.TcoFormat;
 // Nur Eingabezeilen; berechnete Zeilen haben keine Standardannahme
 const editable = (rows) => rows.filter((r) => r.section || r.group || r.key);
@@ -11,7 +12,7 @@ let saved = null;    // { current, original, customized } – Stand auf dem Serv
 let draft = null;    // bearbeitete Standardannahmen
 let invalid = new Set();
 
-const label = (row) => (typeof row.label === "function" ? row.label(draft) : row.label);
+const label = (row) => (typeof row.label === "function" ? row.label(draft) : T(row.label));
 
 function status(text, ok = false) {
   const el = document.getElementById("status");
@@ -35,7 +36,7 @@ function buildHeader() {
   for (const l of locos) {
     const th = document.createElement("th");
     if (l.isReference) th.className = "ref";
-    th.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(l.subtitle)}</span>`;
+    th.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(T(l.subtitle))}</span>`;
     tr.appendChild(th);
   }
 }
@@ -50,7 +51,7 @@ function makeInput(row, id, get, set, original) {
   const markChanged = () => {
     const changed = get() !== original;
     el.classList.toggle("changed", changed);
-    el.title = changed ? `Auslieferungswert: ${toInputText(row, original)}${row.pct ? " %" : ""}` : "";
+    el.title = changed ? T("Auslieferungswert: {0}", `${toInputText(row, original)}${row.pct ? " %" : ""}`) : "";
   };
   markChanged();
   el.addEventListener("input", () => {
@@ -74,7 +75,7 @@ function renderCentral() {
       group = document.createElement("div");
       group.className = "central-group";
       const h = document.createElement("h3");
-      h.textContent = row.group;
+      h.textContent = T(row.group);
       group.appendChild(h);
       box.appendChild(group);
       continue;
@@ -86,7 +87,7 @@ function renderCentral() {
     if (typeof row.label === "function") row._labelCell = labelEl;
     const unit = document.createElement("span");
     unit.className = "unit";
-    unit.textContent = row.unit;
+    unit.textContent = T(row.unit);
     line.append(labelEl,
       makeInput(row, row.key, () => draft[row.key], (v) => (draft[row.key] = v), saved.original[row.key]), unit);
     group.appendChild(line);
@@ -105,13 +106,13 @@ function render() {
     const tr = document.createElement("tr");
     if (row.section || row.group) {
       tr.className = row.section ? "section" : "group";
-      const cell = td(null, row.section ?? row.group);
+      const cell = td(null, T(row.section ?? row.group));
       cell.colSpan = colCount;
       tr.appendChild(cell);
     } else {
       const labelCell = td(null, label(row));
       if (row.indent) labelCell.classList.add(`indent-${row.indent}`);
-      tr.append(labelCell, td(null, row.unit));
+      tr.append(labelCell, td(null, T(row.unit)));
       for (const l of locos) {
         const cls = l.isReference ? "ref" : "";
         if (row.when && !row.when(l)) { tr.appendChild(td(cls)); continue; }
@@ -123,8 +124,8 @@ function render() {
     body.appendChild(tr);
   }
   document.getElementById("origin").textContent = saved.customized
-    ? "Aktiv: im Admin-Bereich gespeicherte Werte."
-    : "Aktiv: Auslieferungswerte aus model-data.json.";
+    ? T("Aktiv: im Admin-Bereich gespeicherte Werte.")
+    : T("Aktiv: Auslieferungswerte aus model-data.json.");
   updateButtons();
 }
 
@@ -154,8 +155,8 @@ async function request(method, body) {
   });
   if (res.status === 400) {
     const problem = await res.json();
-    const errors = Object.entries(problem.errors ?? {}).map(([k, v]) => `${k}: ${v.join(" ")}`);
-    throw new Error("Bitte Eingaben prüfen: " + errors.join("; "));
+    const errors = Object.entries(problem.errors ?? {}).map(([k, v]) => `${k}: ${v.map(TS).join(" ")}`);
+    throw new Error(T("Bitte Eingaben prüfen: ") + errors.join("; "));
   }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
@@ -168,16 +169,16 @@ async function init() {
   apply(info);
 
   document.getElementById("save").addEventListener("click", async () => {
-    try { apply(await request("PUT", draft)); status("Gespeichert.", true); }
-    catch (e) { status("Speichern fehlgeschlagen: " + e.message); }
+    try { apply(await request("PUT", draft)); status(T("Gespeichert."), true); }
+    catch (e) { status(T("Speichern fehlgeschlagen: ") + e.message); }
   });
   document.getElementById("discard").addEventListener("click", () => { apply(saved); status(""); });
   document.getElementById("restore").addEventListener("click", async () => {
-    if (!confirm("Gespeicherte Standardannahmen löschen und die Auslieferungswerte verwenden?")) return;
-    try { apply(await request("DELETE")); status("Auslieferungswerte wiederhergestellt.", true); }
-    catch (e) { status("Zurücksetzen fehlgeschlagen: " + e.message); }
+    if (!confirm(T("Gespeicherte Standardannahmen löschen und die Auslieferungswerte verwenden?"))) return;
+    try { apply(await request("DELETE")); status(T("Auslieferungswerte wiederhergestellt."), true); }
+    catch (e) { status(T("Zurücksetzen fehlgeschlagen: ") + e.message); }
   });
   window.addEventListener("beforeunload", (e) => { if (dirty()) e.preventDefault(); });
 }
 
-init().catch((e) => status("Laden fehlgeschlagen: " + e.message));
+init().catch((e) => status(T("Laden fehlgeschlagen: ") + e.message));

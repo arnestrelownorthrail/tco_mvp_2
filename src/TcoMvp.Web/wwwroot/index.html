@@ -6,6 +6,7 @@
   <title>Betriebskostenvergleich Traxx Shunter</title>
   <link rel="icon" type="image/png" sizes="32x32" href="images/northrail-favicon-32.png">
   <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js"></script>
   <script src="theme.js"></script>
 </head>
 <body>
@@ -13,32 +14,33 @@
   <header class="topbar">
     <img class="logo" src="images/northrail-logo.svg" alt="Northrail">
     <div class="titles">
-      <h1>Betriebskostenvergleich</h1>
-      <p class="sub">Traxx Shunter E-Diesel im Vergleich zu Bestandsloks</p>
+      <h1 data-i18n>Betriebskostenvergleich</h1>
+      <p class="sub" data-i18n>Traxx Shunter E-Diesel im Vergleich zu Bestandsloks</p>
     </div>
     <div class="actions">
-      <button type="button" id="reset" title="Standardannahmen in alle Eingabefelder übernehmen">Annahmen zurücksetzen</button>
-      <button type="button" id="print" class="secondary">Drucken / PDF</button>
+      <button type="button" id="reset" title="Standardannahmen in alle Eingabefelder übernehmen" data-i18n-title data-i18n>Annahmen zurücksetzen</button>
+      <button type="button" id="print" class="secondary" data-i18n>Drucken / PDF</button>
+      <button type="button" id="lang-toggle" class="secondary theme-toggle">EN</button>
       <button type="button" id="theme-toggle" class="secondary theme-toggle">Hell</button>
     </div>
   </header>
 
   <div class="controls">
-    <p class="hint"><span class="swatch"></span> Eingabefelder &nbsp;·&nbsp; alle anderen Felder werden automatisch berechnet.</p>
+    <p class="hint"><span class="swatch"></span> <span data-i18n>Eingabefelder</span> &nbsp;·&nbsp; <span data-i18n>alle anderen Felder werden automatisch berechnet.</span></p>
 
     <fieldset id="loco-filter" class="loco-filter">
-      <legend>Loks im Vergleich</legend>
+      <legend data-i18n>Loks im Vergleich</legend>
     </fieldset>
   </div>
   </div>
 
   <main>
     <section class="card central-inputs" aria-labelledby="central-title">
-      <h2 id="central-title" class="block-title">Zentrale Inputs <span class="muted">gelten für alle Loktypen</span></h2>
+      <h2 id="central-title" class="block-title"><span data-i18n>Zentrale Inputs</span> <span class="muted" data-i18n>gelten für alle Loktypen</span></h2>
       <div id="central" class="central-grid"></div>
     </section>
 
-    <h2 class="block-title">Vergleich je Lok <span class="muted"></span></h2>
+    <h2 class="block-title"><span data-i18n>Vergleich je Lok</span></h2>
     <div class="table-wrap">
       <table id="sheet">
         <colgroup>
@@ -46,7 +48,7 @@
         </colgroup>
         <thead>
           <tr id="head-row">
-            <th></th><th>Einheit</th>
+            <th></th><th data-i18n>Einheit</th>
           </tr>
         </thead>
         <tbody id="assumptions"></tbody>
@@ -56,11 +58,11 @@
 
     <section class="chart-card" aria-labelledby="chart-title">
       <div class="chart-head">
-        <h2 id="chart-title">Betriebskosten* je Lok <span class="muted">€ / Monat</span></h2>
+        <h2 id="chart-title"><span data-i18n>Betriebskosten* je Lok</span> <span class="muted" data-i18n>€ / Monat</span></h2>
         <div class="chart-legend">
-          <span><i class="key s-rent"></i>Miete und Instandhaltung</span>
-          <span><i class="key s-energy"></i>Energiekosten</span>
-          <span><i class="key ref-line"></i>Traxx Shunter (Referenz)</span>
+          <span><i class="key s-rent"></i><span data-i18n>Miete und Instandhaltung</span></span>
+          <span><i class="key s-energy"></i><span data-i18n>Energiekosten</span></span>
+          <span><i class="key ref-line"></i><span data-i18n>Traxx Shunter (Referenz)</span></span>
         </div>
       </div>
       <div id="chart" class="chart"></div>
@@ -68,7 +70,7 @@
     </section>
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
-    <p class="footnote">* exkl. Versicherungskosten. Alle Kosten in € pro Monat und Lok.</p>
+    <p class="footnote" data-i18n>* exkl. Versicherungskosten. Alle Kosten in € pro Monat und Lok.</p>
     <p class="print-date" id="print-date"></p>
   </main>
 

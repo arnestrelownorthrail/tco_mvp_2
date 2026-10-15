@@ -7,6 +7,7 @@ const STORAGE_KEY = "tco-mvp-inputs-v1";
 const BASE_KEY = "tco-mvp-inputs-base-v1"; // Standardannahmen, auf denen die gespeicherten Eingaben beruhen
 const HIDDEN_KEY = "tco-mvp-hidden-locos-v1";
 const { nf, formatValue, toInputText, parseInput, isValid, errorText, withError } = window.TcoFormat;
+const { T, TS, locale } = window.TcoI18n;
 const fmtEuro = nf(0);
 
 let model = null;   // { locomotives: [...], defaults: {...} }
@@ -18,7 +19,7 @@ let lastResult = null;
 const visibleLocos = () => model.locomotives.filter((l) => !hidden.has(l.id));
 
 const ROWS = window.TcoRows;
-const rowLabel = (row) => (typeof row.label === "function" ? row.label(inputs) : row.label);
+const rowLabel = (row) => (typeof row.label === "function" ? row.label(inputs) : T(row.label));
 
 // ---- Aufbau der Tabelle -------------------------------------------------------------------
 function buildHeader() {
@@ -27,7 +28,7 @@ function buildHeader() {
   for (const l of visibleLocos()) {
     const th = document.createElement("th");
     if (l.isReference) th.className = "ref";
-    th.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(l.subtitle)}</span>`;
+    th.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(T(l.subtitle))}</span>`;
     tr.appendChild(th);
   }
 }
@@ -71,7 +72,7 @@ function renderCentral() {
       group = document.createElement("div");
       group.className = "central-group";
       const h = document.createElement("h3");
-      h.textContent = row.group;
+      h.textContent = T(row.group);
       group.appendChild(h);
       box.appendChild(group);
       continue;
@@ -92,7 +93,7 @@ function renderCentral() {
     }
     const unit = document.createElement("span");
     unit.className = "unit";
-    unit.textContent = row.unit;
+    unit.textContent = T(row.unit);
     line.append(label, value, unit);
     group.appendChild(line);
   }
@@ -107,11 +108,11 @@ function renderAssumptions() {
     const tr = document.createElement("tr");
     if (row.section || row.group) {
       tr.className = row.section ? "section" : "group";
-      const cell = td(null, row.section ?? row.group); cell.colSpan = colCount; tr.appendChild(cell);
+      const cell = td(null, T(row.section ?? row.group)); cell.colSpan = colCount; tr.appendChild(cell);
     } else {
       const labelCell = td(null, rowLabel(row));
       if (row.indent) labelCell.classList.add(`indent-${row.indent}`);
-      tr.append(labelCell, td(null, row.unit));
+      tr.append(labelCell, td(null, T(row.unit)));
       row._calcCells = [];
       for (const l of visibleLocos()) {
         const cls = l.isReference ? "ref" : "";
@@ -153,14 +154,14 @@ function renderResults(result) {
 
   const head = document.createElement("tr");
   head.className = "section";
-  const h = td(null, "Betriebskosten"); h.colSpan = colCount; head.appendChild(h);
+  const h = td(null, T("Betriebskosten")); h.colSpan = colCount; head.appendChild(h);
   body.appendChild(head);
 
   const byId = Object.fromEntries((result?.locomotives ?? []).map((r) => [r.id, r]));
   for (const row of RESULT_ROWS) {
     const tr = document.createElement("tr");
     tr.className = "result" + (row.total ? " total" : "");
-    tr.append(td(null, row.label), td(null, "€ / Monat"));
+    tr.append(td(null, T(row.label)), td(null, T("€ / Monat")));
     for (const l of visibleLocos()) {
       const r = byId[l.id];
       let cls = l.isReference ? "ref" : "";
@@ -169,7 +170,7 @@ function renderResults(result) {
         const v = r[row.key];
         if (v === null || v === undefined) {
           // Entspricht #NV in der Excel (z.B. Laufleistung außerhalb der Traxx-Vertragstabelle)
-          if (!(row.diff && l.isReference)) { text = "n. v."; cls += " err"; }
+          if (!(row.diff && l.isReference)) { text = T("n. v."); cls += " err"; }
         } else {
           text = (row.diff && v > 0 ? "+" : "") + fmtEuro.format(v) + " €";
           if (row.diff) cls += v > 0 ? " pos" : v < 0 ? " neg" : "";
@@ -205,7 +206,7 @@ function renderChart(result) {
 
     const name = document.createElement("div");
     name.className = "chart-name";
-    name.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(l.isReference ? "Referenz" : l.subtitle)}</span>`;
+    name.innerHTML = `${escapeHtml(l.name)}<br><span class="muted">${escapeHtml(T(l.isReference ? "Referenz" : l.subtitle))}</span>`;
 
     const track = document.createElement("div");
     track.className = "chart-track";
@@ -222,15 +223,15 @@ function renderChart(result) {
         const seg = document.createElement("div");
         seg.className = `chart-seg ${s.cls}`;
         seg.style.flexGrow = v;
-        seg.dataset.tip = `${l.name}\n${s.label}: ${euro(v)}\nSumme: ${euro(r.totalOperatingCost)}`;
+        seg.dataset.tip = `${l.name}\n${T(s.label)}: ${euro(v)}\n${T("Summe")}: ${euro(r.totalOperatingCost)}`;
         bar.appendChild(seg);
       }
       track.appendChild(bar);
       const d = r.differenceToReference;
       value.innerHTML = `<strong>${euro(r.totalOperatingCost)}</strong>` +
-        (typeof d === "number" ? `<br><span class="muted ${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${d > 0 ? "+" : ""}${euro(d)} ggü. Referenz</span>` : "");
+        (typeof d === "number" ? `<br><span class="muted ${d > 0 ? "pos" : d < 0 ? "neg" : ""}">${d > 0 ? "+" : ""}${euro(d)} ${T("ggü. Referenz")}</span>` : "");
     } else if (r) {
-      value.innerHTML = `<span class="muted">n. v.</span>`;
+      value.innerHTML = `<span class="muted">${T("n. v.")}</span>`;
     }
     row.append(name, track, value);
     chart.appendChild(row);
@@ -274,7 +275,7 @@ function buildLocoFilter() {
       // Die Referenzlok (Traxx Shunter) ist immer Teil des Vergleichs.
       cb.disabled = true;
       label.className = "locked";
-      label.title = "Referenzlok – immer im Vergleich";
+      label.title = T("Referenzlok – immer im Vergleich");
     }
     cb.addEventListener("change", () => {
       if (cb.checked) hidden.delete(l.id); else hidden.add(l.id);
@@ -318,17 +319,17 @@ async function calculate() {
     });
     if (res.status === 400) {
       const problem = await res.json();
-      status.textContent = "Bitte Eingaben prüfen: " + Object.values(problem.errors ?? {}).flat().join(" ");
+      status.textContent = T("Bitte Eingaben prüfen: ") + Object.values(problem.errors ?? {}).flat().map(TS).join(" ");
       return;
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const result = await res.json();
     lastResult = result;
     renderResults(result);
-    const errors = result.locomotives.filter((l) => l.error).map((l) => l.error);
+    const errors = result.locomotives.filter((l) => l.error).map((l) => TS(l.error));
     status.textContent = errors.join(" ");
   } catch (e) {
-    status.textContent = "Berechnung fehlgeschlagen: " + e.message;
+    status.textContent = T("Berechnung fehlgeschlagen: ") + e.message;
   }
 }
 
@@ -374,7 +375,7 @@ async function init() {
   document.getElementById("print").addEventListener("click", () => window.print());
 }
 
-init().catch((e) => { document.getElementById("status").textContent = "Laden fehlgeschlagen: " + e.message; });
+init().catch((e) => { document.getElementById("status").textContent = T("Laden fehlgeschlagen: ") + e.message; });
 
 // Druckdatum (Fußzeile im PDF); steht hier statt inline, weil die CSP keine Inline-Skripte erlaubt
-document.getElementById("print-date").textContent = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
+document.getElementById("print-date").textContent = new Date().toLocaleString(locale, { dateStyle: "short", timeStyle: "short" });

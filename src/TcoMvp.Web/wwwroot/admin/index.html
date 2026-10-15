@@ -6,34 +6,36 @@
   <title>Admin – Standardannahmen</title>
   <link rel="icon" type="image/png" sizes="32x32" href="/images/northrail-favicon-32.png">
   <link rel="stylesheet" href="/styles.css">
+  <script src="/i18n.js"></script>
   <script src="/theme.js"></script>
 </head>
 <body>
   <header class="topbar">
     <a href="/"><img class="logo" src="/images/northrail-logo.svg" alt="Northrail"></a>
     <div class="titles">
-      <h1>Standardannahmen</h1>
-      <p class="sub">Admin · Werte für „Annahmen zurücksetzen“ und für neue Besucher</p>
+      <h1 data-i18n>Standardannahmen</h1>
+      <p class="sub" data-i18n>Admin · Werte für „Annahmen zurücksetzen“ und für neue Besucher</p>
     </div>
     <div class="actions">
-      <button type="button" id="save">Speichern</button>
-      <button type="button" id="discard" class="secondary">Änderungen verwerfen</button>
-      <button type="button" id="restore" class="secondary" title="Gespeicherte Änderungen löschen und die Werte aus model-data.json verwenden">Auslieferungswerte</button>
-      <a class="button secondary" href="/">Zur Kundenansicht</a>
+      <button type="button" id="save" data-i18n>Speichern</button>
+      <button type="button" id="discard" class="secondary" data-i18n>Änderungen verwerfen</button>
+      <button type="button" id="restore" class="secondary" title="Gespeicherte Änderungen löschen und die Werte aus model-data.json verwenden" data-i18n-title data-i18n>Auslieferungswerte</button>
+      <a class="button secondary" href="/" data-i18n>Zur Kundenansicht</a>
+      <button type="button" id="lang-toggle" class="secondary theme-toggle">EN</button>
       <button type="button" id="theme-toggle" class="secondary theme-toggle">Hell</button>
     </div>
   </header>
 
   <main>
-    <p class="hint"><span class="swatch"></span> Eingabefelder &nbsp;·&nbsp; <span class="swatch changed"></span> abweichend vom Auslieferungswert (Wert im Tooltip)</p>
+    <p class="hint"><span class="swatch"></span> <span data-i18n>Eingabefelder</span> &nbsp;·&nbsp; <span class="swatch changed"></span> <span data-i18n>abweichend vom Auslieferungswert (Wert im Tooltip)</span></p>
     <p id="origin" class="hint"></p>
 
     <section class="card central-inputs" aria-labelledby="central-title">
-      <h2 id="central-title" class="block-title">Zentrale Inputs <span class="muted">gelten für alle Loktypen</span></h2>
+      <h2 id="central-title" class="block-title"><span data-i18n>Zentrale Inputs</span> <span class="muted" data-i18n>gelten für alle Loktypen</span></h2>
       <div id="central" class="central-grid"></div>
     </section>
 
-    <h2 class="block-title">Lok-spezifische Inputs</h2>
+    <h2 class="block-title" data-i18n>Lok-spezifische Inputs</h2>
     <div class="table-wrap">
       <table id="sheet">
         <colgroup>
@@ -41,7 +43,7 @@
         </colgroup>
         <thead>
           <tr id="head-row">
-            <th></th><th>Einheit</th>
+            <th></th><th data-i18n>Einheit</th>
           </tr>
         </thead>
         <tbody id="assumptions"></tbody>
@@ -49,7 +51,7 @@
     </div>
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
-    <p class="footnote">Gespeicherte Werte gelten sofort für „Annahmen zurücksetzen“ und für Besucher ohne eigene, im Browser gespeicherte Eingaben.</p>
+    <p class="footnote" data-i18n>Gespeicherte Werte gelten sofort für „Annahmen zurücksetzen“ und für Besucher ohne eigene, im Browser gespeicherte Eingaben.</p>
   </main>
 
   <script src="/format.js"></script>

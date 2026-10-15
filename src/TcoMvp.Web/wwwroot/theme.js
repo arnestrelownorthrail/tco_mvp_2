@@ -18,7 +18,8 @@
   function render(button) {
     const light = current() === "light";
     button.setAttribute("aria-pressed", String(light));
-    button.title = light ? "Zum dunklen Modus wechseln" : "Zum hellen Modus wechseln";
+    const T = window.TcoI18n ? window.TcoI18n.T : (s) => s;
+    button.title = T(light ? "Zum dunklen Modus wechseln" : "Zum hellen Modus wechseln");
     button.innerHTML = light
       ? '<span class="icon" aria-hidden="true">☾</span>'
       : '<span class="icon" aria-hidden="true">☀</span>';
