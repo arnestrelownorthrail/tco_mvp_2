@@ -5,7 +5,7 @@ namespace TcoMvp.Tests;
 
 /// <summary>
 /// Wartungslogik je Lok mit eigens konstruierten Tabellen, damit jede Regel
-/// (Tabellentreffer vs. Regression, Preisbänder, Load factor) gezielt geprüft wird.
+/// (Tabellentreffer vs. Regression, Preisbänder, Heavy Maintenance) gezielt geprüft wird.
 /// </summary>
 public class MaintenanceTests
 {
@@ -35,7 +35,7 @@ public class MaintenanceTests
 
     private static readonly MaintenanceCalculator Calc = new(Tables);
 
-    private static LocoConfig Loco(MaintenanceModel m, double loadFactor = 0.15) => new() { Id = "t", Maintenance = m, LoadFactor = loadFactor };
+    private static LocoConfig Loco(MaintenanceModel m) => new() { Id = "t", Maintenance = m };
 
     // ---- G1206 / DE18 ---------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ public class MaintenanceTests
     [InlineData(47499, 2)]
     public void Traxx_km_price_uses_band_boundaries_like_contract(double km, int band)
     {
-        var heavy = Calc.HeavyMaintenanceMatrix(0.15);
+        var heavy = Calc.HeavyMaintenanceMatrix();
         var hmCol = ExcelFunctions.XLookupExactOrNextLarger(km, Tables.Traxx.HeavyMaintenance.Mileages)!.Value;
         var expected = heavy[0][hmCol] + km * Tables.Traxx.KmRates[band] / 12; // ≤ 500 h → keine Dieselstunden
 
@@ -113,7 +113,7 @@ public class MaintenanceTests
         Assert.Equal(at499, at500, 9);
         // 501 h: 1 zusätzliche Stunde, Satz aus Zeile "500" und km-Band 0 = 10 €/h, monatlich /12;
         // Heavy-Maintenance-Zeile springt von 500 auf 750 h.
-        var heavy = Calc.HeavyMaintenanceMatrix(0.15);
+        var heavy = Calc.HeavyMaintenanceMatrix();
         Assert.Equal(heavy[1][0] - heavy[0][0] + 1 * 10.0 / 12, at501 - at500, 9);
     }
 
@@ -141,13 +141,13 @@ public class MaintenanceTests
             Calc.Calculate(Loco(MaintenanceModel.Traxx), 0, 30000).Cost!.Value,
             Calc.Calculate(Loco(MaintenanceModel.Traxx), -100, 30000).Cost!.Value, 9);
 
-    // ---- Heavy Maintenance / Load factor ----------------------------------------------------
+    // ---- Heavy Maintenance ----------------------------------------------------------------
 
     [Fact]
     public void Heavy_maintenance_extrapolated_rows_are_average_of_neighbours()
     {
         var hm = Tables.Traxx.HeavyMaintenance;
-        var m = Calc.HeavyMaintenanceMatrix(0.15);
+        var m = Calc.HeavyMaintenanceMatrix();
         for (var r = 0; r < hm.Hours.Length; r++)
         {
             if (hm.CalculatedHours.Contains(hm.Hours[r])) continue;
@@ -159,23 +159,47 @@ public class MaintenanceTests
     [Fact]
     public void Heavy_maintenance_grows_with_diesel_hours()
     {
-        var m = Calc.HeavyMaintenanceMatrix(0.15);
+        var m = Calc.HeavyMaintenanceMatrix();
         for (var r = 1; r < m.Length; r++)
             Assert.True(m[r][0] >= m[r - 1][0], $"Zeile {r} kleiner als Zeile {r - 1}");
     }
 
     [Fact]
-    public void Higher_load_factor_never_lowers_heavy_maintenance()
+    public void Heavy_maintenance_uses_per_column_wheelset_price_and_interval()
     {
-        var lf15 = Calc.HeavyMaintenanceMatrix(0.15);
-        var lf25 = Calc.HeavyMaintenanceMatrix(0.25);
-        for (var r = 0; r < lf15.Length; r++)
-            for (var c = 0; c < lf15[r].Length; c++)
-                Assert.True(lf25[r][c] >= lf15[r][c]);
-        Assert.NotEqual(lf15[^1][0], lf25[^1][0]);
+        var hm = Tables.Traxx.HeavyMaintenance;
+        var m = Calc.HeavyMaintenanceMatrix();
+        // Spalten unterscheiden sich nur im Radsatz-Anteil (Zeile 49)
+        for (var c = 1; c < hm.Mileages.Length; c++)
+            Assert.Equal(
+                hm.WheelsetOverhaulPrices[c] / hm.WheelsetOverhaulMonths[c] - hm.WheelsetOverhaulPrices[0] / hm.WheelsetOverhaulMonths[0],
+                m[0][c] - m[0][0], 9);
     }
 
     [Fact]
-    public void Unknown_load_factor_falls_back_to_last_entry_like_Excel_IF_chain()
-        => Assert.Equal(Calc.HeavyMaintenanceMatrix(0.25)[^1], Calc.HeavyMaintenanceMatrix(0.3)[^1]);
+    public void Diesel_measures_with_interval_over_lifetime_are_not_charged()
+    {
+        var hm = Tables.Traxx.HeavyMaintenance;
+        var longIntervals = new MaintenanceTables
+        {
+            Traxx = new TraxxTables
+            {
+                HeavyMaintenance = new HeavyMaintenanceData
+                {
+                    Mileages = hm.Mileages, Hours = hm.Hours, CalculatedHours = hm.CalculatedHours,
+                    R8Months = 1, R10Months = 1, R16Months = 1, R20Months = 1, GearboxMonths = 1,
+                    WheelsetOverhaulPrices = hm.WheelsetOverhaulPrices.Select(_ => 0.0).ToArray(),
+                    WheelsetOverhaulMonths = hm.WheelsetOverhaulMonths,
+                    AlternatorPrice = 1200, TopEndPrice = 1200, RubbersPrice = 1200,
+                    AlternatorYears = hm.CalculatedHours.Select(_ => 31.0).ToArray(),
+                    TopEndYears = hm.CalculatedHours.Select(_ => 31.0).ToArray(),
+                    RubbersYears = hm.CalculatedHours.Select(_ => 10.0).ToArray(),
+                    MajorPerMonth = hm.CalculatedHours.Select(_ => 0.0).ToArray(),
+                    LifetimeYears = 30,
+                },
+            },
+        };
+        // Nur Rubbers (10 Jahre ≤ 30) wird umgelegt: 1200 / 10 / 12 = 10 € / Monat
+        Assert.Equal(10, new MaintenanceCalculator(longIntervals).HeavyMaintenanceMatrix()[0][0], 9);
+    }
 }

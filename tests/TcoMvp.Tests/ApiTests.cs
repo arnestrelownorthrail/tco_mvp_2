@@ -170,16 +170,15 @@ public class ApiStartupTests
 /// </summary>
 public class ApiExcelParityTests
 {
-    private sealed record Scenario(string Name, double LoadFactor, CustomerInputs Inputs,
+    private sealed record Scenario(string Name, CustomerInputs Inputs,
         Dictionary<string, ExcelParityTests.ExpectedCustomer> ExpectedCustomer);
 
     [SensitiveDataFact]
-    public async Task Api_returns_Excel_values_for_all_load_factor_15_scenarios()
+    public async Task Api_returns_Excel_values_for_all_scenarios()
     {
         using var factory = new TcoAppFactory(SensitiveData.SensitivePath);
         var client = factory.CreateClient();
         var scenarios = JsonSerializer.Deserialize<List<Scenario>>(File.ReadAllText(SensitiveData.FixturesPath), ModelDataLoader.JsonOptions)!
-            .Where(s => s.LoadFactor == 0.15) // Load factor ist keine API-Eingabe
             // Energiepreise 0 lehnt die API ab (Preise > 0); gerechnet wird das Szenario in ExcelParityTests.
             .Where(s => s.Inputs.DieselPricePerLiter > 0 && s.Inputs.ElectricityPricePerKwh > 0)
             .ToList();

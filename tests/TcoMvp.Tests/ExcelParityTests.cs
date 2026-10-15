@@ -19,7 +19,6 @@ public class ExcelParityTests
 
     public sealed record Scenario(
         string Name,
-        double LoadFactor,
         CustomerInputs Inputs,
         Dictionary<string, ExpectedCustomer> ExpectedCustomer,
         Dictionary<string, ExpectedModel> ExpectedModel);
@@ -45,15 +44,6 @@ public class ExcelParityTests
         return data;
     }
 
-    /// <summary>Kopie der Stammdaten mit anderem Load factor (TCO Model!M41).</summary>
-    private static ModelData WithLoadFactor(double loadFactor)
-    {
-        var node = JsonSerializer.SerializeToNode(BaseData, ModelDataLoader.JsonOptions)!;
-        foreach (var loco in node["locomotives"]!.AsArray())
-            if ((string?)loco!["id"] == BaseData.ReferenceLocoId) loco["loadFactor"] = loadFactor;
-        return node.Deserialize<ModelData>(ModelDataLoader.JsonOptions)!;
-    }
-
     private static void AssertClose(double? expected, double? actual, string what)
     {
         if (expected is null)
@@ -72,7 +62,7 @@ public class ExcelParityTests
     public void TcoModel_matches_Excel(string name)
     {
         var s = Scenarios.Single(x => x.Name == name);
-        var result = new TcoCalculator(WithLoadFactor(s.LoadFactor)).Calculate(s.Inputs);
+        var result = new TcoCalculator(BaseData).Calculate(s.Inputs);
 
         foreach (var (id, e) in s.ExpectedModel)
         {
@@ -97,7 +87,7 @@ public class ExcelParityTests
     public void CustomerView_matches_Betriebskosten_sheet(string name)
     {
         var s = Scenarios.Single(x => x.Name == name);
-        var data = WithLoadFactor(s.LoadFactor);
+        var data = BaseData;
         var view = CustomerView.From(data, new TcoCalculator(data).Calculate(s.Inputs));
 
         foreach (var (id, e) in s.ExpectedCustomer)

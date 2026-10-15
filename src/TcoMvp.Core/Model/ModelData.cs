@@ -65,9 +65,6 @@ public sealed class LocoConfig
     /// <summary>Double engine impact (Zeile 42, nur Traxx; 0 = keine Wirkung)</summary>
     public double DoubleEngineImpact { get; init; }
 
-    /// <summary>Load factor (Zeile 41, nur Traxx: 0.15 / 0.20 / 0.25)</summary>
-    public double LoadFactor { get; init; }
-
     public MaintenanceModel Maintenance { get; init; }
 }
 
@@ -120,8 +117,7 @@ public sealed class TraxxTables
 }
 
 /// <summary>
-/// Rücklage Heavy Maintenance (C25:P34) – wird aus den Overhaul-Daten (Zeilen 37–77) berechnet,
-/// weil sie vom Load factor abhängt.
+/// Rücklage Heavy Maintenance (C25:P34) – wird aus den Overhaul-Daten (Zeilen 37–77) berechnet.
 /// </summary>
 public sealed class HeavyMaintenanceData
 {
@@ -141,33 +137,25 @@ public sealed class HeavyMaintenanceData
     public double R20Price { get; init; }
     public double R20Months { get; init; }
 
-    public double WheelsetOverhaulPrice { get; init; }
+    /// <summary>Radsatz-Overhaul-Preis je km-Spalte (Zeile 49: D49 im OVH, ab 100.000 km P48 außerhalb OVH).</summary>
+    public double[] WheelsetOverhaulPrices { get; init; } = [];
     /// <summary>OVH-Monate je km-Spalte (E40:R40).</summary>
     public double[] WheelsetOverhaulMonths { get; init; } = [];
-    /// <summary>Radsatz-Overhauls je OVH-Intervall je km-Spalte (1 bzw. 2, Zeile 49).</summary>
-    public double[] WheelsetOverhaulsPerInterval { get; init; } = [];
 
     public double GearboxPrice { get; init; }
     public double GearboxMonths { get; init; }
-    public double RubbersPrice { get; init; }
-    public double RubbersMonths { get; init; }
 
-    public double AlternatorIntervalHours { get; init; }
+    public double RubbersPrice { get; init; }
     public double AlternatorPrice { get; init; }
     public double TopEndPrice { get; init; }
-    /// <summary>Major OVH ohne Top End ('Maint. Cost Traxx Shunter'!D60 − D57).</summary>
-    public double MajorAdditionalPrice { get; init; }
 
-    /// <summary>Intervalle (Std.) für Top End / Major je Load factor (C57:C62). Fallback = letzter Eintrag.</summary>
-    public List<LoadFactorIntervals> IntervalsByLoadFactor { get; init; } = new();
+    // Intervalle in Jahren je Zeile aus CalculatedHours (E65:H70; in der Excel feste Werte, kein Load factor mehr)
+    public double[] AlternatorYears { get; init; } = [];
+    public double[] TopEndYears { get; init; } = [];
+    public double[] RubbersYears { get; init; } = [];
+    /// <summary>Rücklage Major OVH € / Monat je Zeile aus CalculatedHours (G72:G77, in der Excel feste Werte).</summary>
+    public double[] MajorPerMonth { get; init; } = [];
 
     /// <summary>Nur Maßnahmen mit Intervall ≤ dieser Jahreszahl werden umgelegt ("angenommene Lebensdauer 30 Jahre").</summary>
     public double LifetimeYears { get; init; }
-}
-
-public sealed class LoadFactorIntervals
-{
-    public double LoadFactor { get; init; }
-    public double TopEndHours { get; init; }
-    public double MajorHours { get; init; }
 }

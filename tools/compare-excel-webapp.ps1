@@ -7,7 +7,7 @@
   Aufruf:        powershell -ExecutionPolicy Bypass -File tools\compare-excel-webapp.ps1
 #>
 param(
-    [string]$Workbook = (Join-Path $PSScriptRoot "..\excel\Traxx Shunter_TCO model_26.08._Vertriebsversion.xlsm"),
+    [string]$Workbook = (Join-Path $PSScriptRoot "..\excel\Traxx Shunter_TCO model_26.08._NR_Vertrieb 05.10.2026.xlsm"),
     [string]$BaseUrl = "http://localhost:5080",
     [string]$Report = (Join-Path $PSScriptRoot "..\reports\excel-vs-webapp.csv"),
     [int]$RandomScenarios = 30,

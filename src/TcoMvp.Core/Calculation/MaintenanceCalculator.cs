@@ -14,7 +14,7 @@ internal sealed class MaintenanceCalculator(MaintenanceTables tables)
         MaintenanceModel.De18 => HoursTable(tables.De18, maintenanceHours),
         MaintenanceModel.Vdm => Vdm(maintenanceHours, mileage),
         MaintenanceModel.VdmLight => VdmLight(maintenanceHours, mileage),
-        MaintenanceModel.Traxx => Traxx(maintenanceHours, mileage, loco.LoadFactor),
+        MaintenanceModel.Traxx => Traxx(maintenanceHours, mileage),
         _ => throw new ArgumentOutOfRangeException(nameof(loco)),
     };
 
@@ -57,7 +57,7 @@ internal sealed class MaintenanceCalculator(MaintenanceTables tables)
     }
 
     // =LET(...) in TCO Model!M115
-    private Result Traxx(double maintenanceHours, double km, double loadFactor)
+    private Result Traxx(double maintenanceHours, double km)
     {
         var t = tables.Traxx;
         var dh = Math.Max(maintenanceHours - t.IncludedDieselHours, 0);
@@ -77,7 +77,7 @@ internal sealed class MaintenanceCalculator(MaintenanceTables tables)
         if (dieselRow is null || hmRow is null)
             return new(null, $"Wartungsstunden von {maintenanceHours:N0} h/Jahr liegen außerhalb der Vertragstabelle (max. {hm.Hours.Max():N0} h).");
 
-        var heavy = HeavyMaintenanceMatrix(loadFactor);
+        var heavy = HeavyMaintenanceMatrix();
         var hmPrice = heavy[hmRow.Value][hmCol.Value];
         var kmPrice = km * t.KmRates[kmCol.Value] / 12;
         var dieselPrice = dh * t.DieselHourRates[dieselRow.Value][kmCol.Value] / 12;
@@ -85,41 +85,36 @@ internal sealed class MaintenanceCalculator(MaintenanceTables tables)
     }
 
     /// <summary>'Maint. Cost Traxx Shunter'!C25:P34 – Rücklage Heavy Maintenance € / Monat.</summary>
-    internal double[][] HeavyMaintenanceMatrix(double loadFactor)
+    internal double[][] HeavyMaintenanceMatrix()
     {
         var hm = tables.Traxx.HeavyMaintenance;
 
-        // Fixe Overhauls (E45..E48, E50, E53)
+        // Fixe Overhauls (E45..E48, E50)
         var r8 = hm.R8Price / hm.R8Months;
         var r10 = hm.R10Price / hm.R10Months;
         var r16 = (hm.R16Price - hm.R8Price) / hm.R16Months;
         var r20 = (hm.R20Price - hm.R10Price) / hm.R20Months;
         var gearbox = hm.GearboxPrice / hm.GearboxMonths;
-        var rubbers = hm.RubbersPrice / hm.RubbersMonths;
 
-        // Intervalle je Load factor (F65/G65: IF(LF=15%, …, IF(LF=20%, …, …)))
-        var intervals = hm.IntervalsByLoadFactor.FirstOrDefault(i => i.LoadFactor == loadFactor)
-                        ?? hm.IntervalsByLoadFactor[^1];
+        // Zeilen 72–77: monatliche Rücklage = IF(Intervall <= 30, Preis / Intervall / 12, 0)
+        double Monthly(double price, double years) => years <= hm.LifetimeYears ? price / years / 12 : 0;
 
         var rows = new double[hm.Hours.Length][];
         for (var r = 0; r < hm.Hours.Length; r++)
         {
-            var h = hm.Hours[r];
-            if (!hm.CalculatedHours.Contains(h)) continue;
+            var i = Array.IndexOf(hm.CalculatedHours, hm.Hours[r]);
+            if (i < 0) continue;
 
-            // Zeilen 65–77: Intervall in Jahren und monatliche Rücklage
-            var altInterval = hm.AlternatorIntervalHours / h;
-            var topInterval = intervals.TopEndHours / h;
-            var majorInterval = intervals.MajorHours / h;
-            var alt = altInterval <= hm.LifetimeYears ? hm.AlternatorPrice / altInterval / 12 : 0;
-            var top = topInterval <= hm.LifetimeYears ? hm.TopEndPrice / topInterval / 12 : 0;
-            var major = majorInterval <= hm.LifetimeYears ? hm.MajorAdditionalPrice / majorInterval / 12 : 0;
+            var diesel = Monthly(hm.AlternatorPrice, hm.AlternatorYears[i])
+                         + Monthly(hm.TopEndPrice, hm.TopEndYears[i])
+                         + hm.MajorPerMonth[i]
+                         + Monthly(hm.RubbersPrice, hm.RubbersYears[i]);
 
             rows[r] = new double[hm.Mileages.Length];
             for (var c = 0; c < hm.Mileages.Length; c++)
             {
-                var wheel = hm.WheelsetOverhaulPrice * hm.WheelsetOverhaulsPerInterval[c] / hm.WheelsetOverhaulMonths[c];
-                rows[r][c] = r8 + r10 + r16 + r20 + wheel + gearbox + rubbers + alt + top + major;
+                var wheel = hm.WheelsetOverhaulPrices[c] / hm.WheelsetOverhaulMonths[c];
+                rows[r][c] = r8 + r10 + r16 + r20 + wheel + gearbox + diesel;
             }
         }
 

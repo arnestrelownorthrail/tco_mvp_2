@@ -174,9 +174,9 @@ input.invalid { border-color: var(--bad); background: #fdecea; }
 
 tr.total td { font-weight: 700; border-top: 2px solid var(--text); }
 tr.result td { font-variant-numeric: tabular-nums; }
-tr.result:last-child td { border-bottom: none; }
-tr.result:last-child td:first-child { border-bottom-left-radius: var(--radius); }
-tr.result:last-child td:last-child { border-bottom-right-radius: var(--radius); }
+tbody:last-child tr:last-child td { border-bottom: none; }
+tbody:last-child tr:last-child td:first-child { border-bottom-left-radius: var(--radius); }
+tbody:last-child tr:last-child td:last-child { border-bottom-right-radius: var(--radius); }
 /* Kostenunterschied zur Referenz: + (Lok teurer als Traxx) grün, − rot */
 td.pos, .chart-value .pos { color: var(--good); }
 td.neg, .chart-value .neg { color: var(--bad); }

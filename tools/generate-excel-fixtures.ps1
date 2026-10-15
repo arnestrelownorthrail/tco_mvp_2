@@ -6,7 +6,7 @@
   Aufruf:  powershell -ExecutionPolicy Bypass -File tools\generate-excel-fixtures.ps1
 #>
 param(
-    [string]$Workbook = (Join-Path $PSScriptRoot "..\excel\Traxx Shunter_TCO model_26.08._Vertriebsversion.xlsm"),
+    [string]$Workbook = (Join-Path $PSScriptRoot "..\excel\Traxx Shunter_TCO model_26.08._NR_Vertrieb 05.10.2026.xlsm"),
     [string]$Output = (Join-Path $PSScriptRoot "..\tests\TcoMvp.Tests\Fixtures\excel-scenarios.json"),
     [int]$RandomScenarios = 60,
     [int]$Seed = 4711
@@ -20,7 +20,7 @@ $modelCols = [ordered]@{ "g1206" = "H"; "de18-3a" = "I"; "de18-5sh" = "J"; "vdm"
 
 function New-DefaultScenario($name) {
     [ordered]@{
-        name = $name; loadFactor = 0.15
+        name = $name
         inputs = [ordered]@{
             mileageKmPerYear = 40000; operatingHoursPerYear = 3000; rollingShare = 0.5; electricShare = 0.7
             shuntingShare = 0.5; dieselPricePerLiter = 1.8; electricityPricePerKwh = 0.15
@@ -38,11 +38,10 @@ function New-DefaultScenario($name) {
 $scenarios = @()
 $scenarios += New-DefaultScenario "Standardannahmen"
 
-# Gezielte Fälle: exakte Tabellentreffer, Load factor, Bereichsgrenzen
+# Gezielte Fälle: exakte Tabellentreffer, Bereichsgrenzen
 $s = New-DefaultScenario "G1206/DE18 exakter Tabellentreffer 2000 h"; $s.inputs.operatingHoursPerYear = 2000; $scenarios += $s
 $s = New-DefaultScenario "VDM exakter Matrixtreffer 50000 km / 1000 h"; $s.inputs.mileageKmPerYear = 50000; $s.inputs.operatingHoursPerYear = 2000; $s.inputs.electricShare = 0.5; $scenarios += $s
-$s = New-DefaultScenario "Load factor 20 %"; $s.loadFactor = 0.2; $s.inputs.operatingHoursPerYear = 5000; $s.inputs.electricShare = 0.2; $scenarios += $s
-$s = New-DefaultScenario "Load factor 25 %"; $s.loadFactor = 0.25; $s.inputs.operatingHoursPerYear = 5000; $s.inputs.electricShare = 0.2; $scenarios += $s
+$s = New-DefaultScenario "Viele Dieselstunden 5000 h"; $s.inputs.operatingHoursPerYear = 5000; $s.inputs.electricShare = 0.2; $scenarios += $s
 $s = New-DefaultScenario "Ohne Elektrifizierung"; $s.inputs.electricShare = 0; $scenarios += $s
 $s = New-DefaultScenario "Voll elektrisch"; $s.inputs.electricShare = 1; $scenarios += $s
 $s = New-DefaultScenario "Laufleistung außerhalb Traxx-Tabelle"; $s.inputs.mileageKmPerYear = 130000; $scenarios += $s
@@ -87,7 +86,6 @@ for ($i = 1; $i -le $RandomScenarios; $i++) {
         $l.dieselParkedLitersPerHour = Rnd 5 15 1
         if ($l.Contains("kwhPerKm")) { $l.kwhPerKm = Rnd 10 20 1; $l.kwhPerHourParked = Rnd 20 40 0 }
     }
-    $s.loadFactor = @(0.15, 0.15, 0.2, 0.25)[$rng.Next(4)]
     $scenarios += $s
 }
 
@@ -120,7 +118,6 @@ try {
             $bk.Range("${c}24").Value2 = [double]$l.dieselParkedLitersPerHour
             if ($l.Contains("kwhPerKm")) { $bk.Range("${c}26").Value2 = [double]$l.kwhPerKm; $bk.Range("${c}27").Value2 = [double]$l.kwhPerHourParked }
         }
-        $tm.Range("M41").Value2 = [double]$s.loadFactor
         $excel.CalculateFull()
 
         $customer = [ordered]@{}

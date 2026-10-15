@@ -7,7 +7,6 @@
       "etcsStepUpPerMonth": 0,
       "availability": 0.9,
       "doubleEngineImpact": 0,
-      "loadFactor": 0,
       "maintenance": "G1206"
     },
     {
@@ -16,7 +15,6 @@
       "etcsStepUpPerMonth": 0,
       "availability": 0.9,
       "doubleEngineImpact": 0,
-      "loadFactor": 0,
       "maintenance": "De18"
     },
     {
@@ -25,7 +23,6 @@
       "etcsStepUpPerMonth": 0,
       "availability": 0.9,
       "doubleEngineImpact": 0,
-      "loadFactor": 0,
       "maintenance": "De18"
     },
     {
@@ -34,7 +31,6 @@
       "etcsStepUpPerMonth": 0,
       "availability": 0.9,
       "doubleEngineImpact": 0,
-      "loadFactor": 0,
       "maintenance": "Vdm"
     },
     {
@@ -56,7 +52,6 @@
       "etcsStepUpPerMonth": 0,
       "availability": 0.9,
       "doubleEngineImpact": 0,
-      "loadFactor": 0,
       "maintenance": "VdmLight"
     },
     {
@@ -65,7 +60,6 @@
       "etcsStepUpPerMonth": 0,
       "availability": 0.9,
       "doubleEngineImpact": 0.5,
-      "loadFactor": 0.15,
       "maintenance": "Traxx"
     }
   ],
@@ -335,63 +329,74 @@
         "r16Months": 196,
         "r20Price": 10000,
         "r20Months": 240,
-        "wheelsetOverhaulPrice": 10000,
-        "wheelsetOverhaulMonths": [
-          240,
-          192,
-          192,
-          120,
-          120,
-          120,
-          120,
-          120,
-          120,
-          96,
-          96,
-          96,
-          96,
-          96
+        "wheelsetOverhaulPrices": [
+          10000,
+          10000,
+          10000,
+          10000,
+          10000,
+          10000,
+          10000,
+          10000,
+          10000,
+          10000,
+          10000,
+          12000,
+          12000,
+          12000
         ],
-        "wheelsetOverhaulsPerInterval": [
-          1,
-          1,
-          1,
-          1,
-          1,
-          1,
-          1,
-          1,
-          1,
-          2,
-          2,
-          2,
-          2,
-          2
+        "wheelsetOverhaulMonths": [
+          120,
+          120,
+          120,
+          120,
+          120,
+          120,
+          120,
+          120,
+          120,
+          96,
+          96,
+          90,
+          81,
+          75
         ],
         "gearboxPrice": 10000,
         "gearboxMonths": 240,
         "rubbersPrice": 10000,
-        "rubbersMonths": 108,
-        "alternatorIntervalHours": 18000,
         "alternatorPrice": 10000,
         "topEndPrice": 10000,
-        "majorAdditionalPrice": 10000,
-        "intervalsByLoadFactor": [
-          {
-            "loadFactor": 0.15,
-            "topEndHours": 17500,
-            "majorHours": 35000
-          },
-          {
-            "loadFactor": 0.2,
-            "topEndHours": 14000,
-            "majorHours": 28000
-          },
-          {
-            "loadFactor": 0.25,
-            "topEndHours": 12000,
-            "majorHours": 24000
-          }
+        "alternatorYears": [
+          18,
+          18,
+          12,
+          9,
+          7.2,
+          6
+        ],
+        "topEndYears": [
+          17.5,
+          17.5,
+          11.67,
+          8.75,
+          7,
+          5.83
+        ],
+        "rubbersYears": [
+          9,
+          9,
+          9,
+          8.75,
+          7,
+          5.83
+        ],
+        "majorPerMonth": [
+          0,
+          0,
+          100,
+          150,
+          200,
+          250
         ],
         "lifetimeYears": 30
       }
