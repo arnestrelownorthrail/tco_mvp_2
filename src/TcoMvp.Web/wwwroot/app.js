@@ -97,6 +97,8 @@ function renderCentral() {
     line.append(label, value, unit);
     group.appendChild(line);
   }
+  // Gruppen teilen sich die Zeilen des Rasters, damit Zeilen nebeneinander gleich hoch sind
+  for (const g of box.children) g.style.setProperty("--rows", g.children.length);
 }
 
 function renderAssumptions() {

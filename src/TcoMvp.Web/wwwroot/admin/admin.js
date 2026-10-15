@@ -92,6 +92,8 @@ function renderCentral() {
       makeInput(row, row.key, () => draft[row.key], (v) => (draft[row.key] = v), saved.original[row.key]), unit);
     group.appendChild(line);
   }
+  // Gruppen teilen sich die Zeilen des Rasters, damit Zeilen nebeneinander gleich hoch sind
+  for (const g of box.children) g.style.setProperty("--rows", g.children.length);
 }
 
 function render() {
