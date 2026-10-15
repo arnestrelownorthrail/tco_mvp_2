@@ -29,14 +29,20 @@
   </div>
 
   <main>
+    <section class="card central-inputs" aria-labelledby="central-title">
+      <h2 id="central-title" class="block-title">Zentrale Inputs <span class="muted">gelten für alle Loktypen</span></h2>
+      <div id="central" class="central-grid"></div>
+    </section>
+
+    <h2 class="block-title">Vergleich je Lok <span class="muted"></span></h2>
     <div class="table-wrap">
       <table id="sheet">
         <colgroup>
-          <col class="c-label"><col class="c-unit"><col class="c-central">
+          <col class="c-label"><col class="c-unit">
         </colgroup>
         <thead>
           <tr id="head-row">
-            <th></th><th>Einheit</th><th>Zentrale Inputs<br><span class="muted">für alle Loktypen</span></th>
+            <th></th><th>Einheit</th>
           </tr>
         </thead>
         <tbody id="assumptions"></tbody>

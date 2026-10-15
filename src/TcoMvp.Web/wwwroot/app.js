@@ -18,11 +18,12 @@ let lastResult = null;
 const visibleLocos = () => model.locomotives.filter((l) => !hidden.has(l.id));
 
 const ROWS = window.TcoRows;
+const rowLabel = (row) => (typeof row.label === "function" ? row.label(inputs) : row.label);
 
 // ---- Aufbau der Tabelle -------------------------------------------------------------------
 function buildHeader() {
   const tr = document.getElementById("head-row");
-  while (tr.children.length > 3) tr.lastChild.remove();
+  while (tr.children.length > 2) tr.lastChild.remove();
   for (const l of visibleLocos()) {
     const th = document.createElement("th");
     if (l.isReference) th.className = "ref";
@@ -47,7 +48,7 @@ function makeInput(row, get, set) {
   el.type = "text";
   el.inputMode = "decimal";
   el.value = toInputText(row, get());
-  el.setAttribute("aria-label", typeof row.label === "function" ? row.label(inputs) : row.label);
+  el.setAttribute("aria-label", rowLabel(row));
   el.addEventListener("input", () => {
     const v = parseInput(row, el.value);
     const ok = isValid(row, v);
@@ -58,45 +59,68 @@ function makeInput(row, get, set) {
   return el;
 }
 
+// Block "Zentrale Inputs": gilt für alle Loks, getrennt von der Lok-Tabelle
+function renderCentral() {
+  const box = document.getElementById("central");
+  box.replaceChildren();
+  let group = null;
+  for (const row of ROWS.central) {
+    if (row.group) {
+      group = document.createElement("div");
+      group.className = "central-group";
+      const h = document.createElement("h3");
+      h.textContent = row.group;
+      group.appendChild(h);
+      box.appendChild(group);
+      continue;
+    }
+    const line = document.createElement("div");
+    line.className = "central-row" + (row.indent ? ` indent-${row.indent}` : "");
+    const label = document.createElement("span");
+    label.textContent = rowLabel(row);
+    if (typeof row.label === "function") row._labelCell = label;
+    let value;
+    if (row.key) {
+      value = makeInput(row, () => inputs[row.key], (v) => (inputs[row.key] = v));
+    } else {
+      value = document.createElement("span");
+      value.className = "calc";
+      value.textContent = formatValue(row, row.calc(inputs));
+      row._calcCells = [[value, null]];
+    }
+    const unit = document.createElement("span");
+    unit.className = "unit";
+    unit.textContent = row.unit;
+    line.append(label, value, unit);
+    group.appendChild(line);
+  }
+}
+
 function renderAssumptions() {
   const body = document.getElementById("assumptions");
   body.replaceChildren();
-  const colCount = 3 + visibleLocos().length;
+  const colCount = 2 + visibleLocos().length;
 
-  for (const row of ROWS) {
+  for (const row of ROWS.loco) {
     const tr = document.createElement("tr");
-    if (row.section) {
-      tr.className = "section";
-      const cell = td(null, row.section); cell.colSpan = colCount; tr.appendChild(cell);
-    } else if (row.group) {
-      tr.className = "group";
-      const cell = td(null, row.group); cell.colSpan = colCount; tr.appendChild(cell);
-    } else if (row.spacer) {
-      const cell = td(null, ""); cell.colSpan = colCount; cell.style.borderBottom = "none"; tr.appendChild(cell);
+    if (row.section || row.group) {
+      tr.className = row.section ? "section" : "group";
+      const cell = td(null, row.section ?? row.group); cell.colSpan = colCount; tr.appendChild(cell);
     } else {
-      const labelCell = td(null, typeof row.label === "function" ? row.label(inputs) : row.label);
-      if (typeof row.label === "function") row._labelCell = labelCell;
+      const labelCell = td(null, rowLabel(row));
       if (row.indent) labelCell.classList.add(`indent-${row.indent}`);
       tr.append(labelCell, td(null, row.unit));
-
-      if (row.kind === "central") {
-        if (row.key) tr.appendChild(td(null, makeInput(row, () => inputs[row.key], (v) => (inputs[row.key] = v))));
-        else { const c = td("calc", formatValue(row, row.calc(inputs))); row._calcCells = [[c, null]]; tr.appendChild(c); }
-        for (const l of visibleLocos()) tr.appendChild(td(l.isReference ? "ref" : ""));
-      } else {
-        tr.appendChild(td());
-        row._calcCells = [];
-        for (const l of visibleLocos()) {
-          const cls = l.isReference ? "ref" : "";
-          if (row.when && !row.when(l)) { tr.appendChild(td(cls)); continue; }
-          const li = inputs.locomotives[l.id];
-          if (row.key) {
-            tr.appendChild(td(cls, makeInput(row, () => li[row.key], (v) => (li[row.key] = v))));
-          } else {
-            const c = td(`${cls} calc`, formatValue(row, row.calc(li)));
-            row._calcCells.push([c, l.id]);
-            tr.appendChild(c);
-          }
+      row._calcCells = [];
+      for (const l of visibleLocos()) {
+        const cls = l.isReference ? "ref" : "";
+        if (row.when && !row.when(l)) { tr.appendChild(td(cls)); continue; }
+        const li = inputs.locomotives[l.id];
+        if (row.key) {
+          tr.appendChild(td(cls, makeInput(row, () => li[row.key], (v) => (li[row.key] = v))));
+        } else {
+          const c = td(`${cls} calc`, formatValue(row, row.calc(li)));
+          row._calcCells.push([c, l.id]);
+          tr.appendChild(c);
         }
       }
     }
@@ -105,7 +129,7 @@ function renderAssumptions() {
 }
 
 function refreshDerived() {
-  for (const row of ROWS) {
+  for (const row of [...ROWS.central, ...ROWS.loco]) {
     if (row._labelCell) row._labelCell.textContent = row.label(inputs);
     for (const [cell, locoId] of row._calcCells ?? []) {
       cell.textContent = formatValue(row, locoId ? row.calc(inputs.locomotives[locoId]) : row.calc(inputs));
@@ -123,7 +147,7 @@ const RESULT_ROWS = [
 function renderResults(result) {
   const body = document.getElementById("results");
   body.replaceChildren();
-  const colCount = 3 + visibleLocos().length;
+  const colCount = 2 + visibleLocos().length;
 
   const head = document.createElement("tr");
   head.className = "section";
@@ -134,7 +158,7 @@ function renderResults(result) {
   for (const row of RESULT_ROWS) {
     const tr = document.createElement("tr");
     tr.className = "result" + (row.total ? " total" : "");
-    tr.append(td(null, row.label), td(null, "€ / Monat"), td());
+    tr.append(td(null, row.label), td(null, "€ / Monat"));
     for (const l of visibleLocos()) {
       const r = byId[l.id];
       let cls = l.isReference ? "ref" : "";
@@ -333,12 +357,14 @@ async function init() {
   setupChartTooltip();
   setupStickyOffset();
   buildHeader();
+  renderCentral();
   renderAssumptions();
   renderResults(null);
   await calculate();
 
   document.getElementById("reset").addEventListener("click", () => {
     inputs = structuredClone(model.defaults);
+    renderCentral();
     renderAssumptions();
     onChange();
     document.getElementById("status").textContent = "";

@@ -2,7 +2,9 @@
 "use strict";
 
 const { toInputText, parseInput, isValid } = window.TcoFormat;
-const ROWS = window.TcoRows.filter((r) => r.section || r.group || r.spacer || r.key);
+// Nur Eingabezeilen; berechnete Zeilen haben keine Standardannahme
+const editable = (rows) => rows.filter((r) => r.section || r.group || r.key);
+const ROWS = { central: editable(window.TcoRows.central), loco: editable(window.TcoRows.loco) };
 
 let locos = [];      // Loks der Kundenansicht (aus /api/model)
 let saved = null;    // { current, original, customized } – Stand auf dem Server
@@ -61,38 +63,59 @@ function makeInput(row, id, get, set, original) {
   return el;
 }
 
+function renderCentral() {
+  const box = document.getElementById("central");
+  box.replaceChildren();
+  let group = null;
+  for (const row of ROWS.central) {
+    if (row.group) {
+      group = document.createElement("div");
+      group.className = "central-group";
+      const h = document.createElement("h3");
+      h.textContent = row.group;
+      group.appendChild(h);
+      box.appendChild(group);
+      continue;
+    }
+    const line = document.createElement("div");
+    line.className = "central-row" + (row.indent ? ` indent-${row.indent}` : "");
+    const labelEl = document.createElement("span");
+    labelEl.textContent = label(row);
+    if (typeof row.label === "function") row._labelCell = labelEl;
+    const unit = document.createElement("span");
+    unit.className = "unit";
+    unit.textContent = row.unit;
+    line.append(labelEl,
+      makeInput(row, row.key, () => draft[row.key], (v) => (draft[row.key] = v), saved.original[row.key]), unit);
+    group.appendChild(line);
+  }
+}
+
 function render() {
   const body = document.getElementById("assumptions");
   body.replaceChildren();
   invalid = new Set();
-  const colCount = 3 + locos.length;
+  renderCentral();
+  const colCount = 2 + locos.length;
   const original = saved.original;
 
-  for (const row of ROWS) {
+  for (const row of ROWS.loco) {
     const tr = document.createElement("tr");
-    if (row.section || row.group || row.spacer) {
-      tr.className = row.section ? "section" : row.group ? "group" : "";
-      const cell = td(null, row.section ?? row.group ?? "");
+    if (row.section || row.group) {
+      tr.className = row.section ? "section" : "group";
+      const cell = td(null, row.section ?? row.group);
       cell.colSpan = colCount;
-      if (row.spacer) cell.style.borderBottom = "none";
       tr.appendChild(cell);
     } else {
       const labelCell = td(null, label(row));
-      if (typeof row.label === "function") row._labelCell = labelCell;
       if (row.indent) labelCell.classList.add(`indent-${row.indent}`);
       tr.append(labelCell, td(null, row.unit));
-      if (row.kind === "central") {
-        tr.appendChild(td(null, makeInput(row, row.key, () => draft[row.key], (v) => (draft[row.key] = v), original[row.key])));
-        for (const l of locos) tr.appendChild(td(l.isReference ? "ref" : ""));
-      } else {
-        tr.appendChild(td());
-        for (const l of locos) {
-          const cls = l.isReference ? "ref" : "";
-          if (row.when && !row.when(l)) { tr.appendChild(td(cls)); continue; }
-          const li = draft.locomotives[l.id];
-          tr.appendChild(td(cls, makeInput(row, `${l.id}.${row.key}`, () => li[row.key], (v) => (li[row.key] = v),
-            original.locomotives[l.id]?.[row.key])));
-        }
+      for (const l of locos) {
+        const cls = l.isReference ? "ref" : "";
+        if (row.when && !row.when(l)) { tr.appendChild(td(cls)); continue; }
+        const li = draft.locomotives[l.id];
+        tr.appendChild(td(cls, makeInput(row, `${l.id}.${row.key}`, () => li[row.key], (v) => (li[row.key] = v),
+          original.locomotives[l.id]?.[row.key])));
       }
     }
     body.appendChild(tr);
@@ -104,7 +127,7 @@ function render() {
 }
 
 function refreshLabels() {
-  for (const row of ROWS) if (row._labelCell) row._labelCell.textContent = label(row);
+  for (const row of ROWS.central) if (row._labelCell) row._labelCell.textContent = label(row);
 }
 
 const dirty = () => JSON.stringify(draft) !== JSON.stringify(saved.current);

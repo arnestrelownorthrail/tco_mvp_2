@@ -87,7 +87,7 @@ test("Eingabe → Anzeige → Eingabe ist verlustfrei", () => {
 });
 
 test("formatValue formatiert wie die Excel-Zahlenformate", () => {
-  assert.equal(f.formatValue(PCT, 0.5), "50 %");
+  assert.equal(f.formatValue(PCT, 0.5), "50");
   assert.equal(f.formatValue(LITRES, 4.8), "4,8");
   assert.equal(f.formatValue(KM, 40000), "40.000");
   assert.equal(f.formatValue(PRICE, null), "");

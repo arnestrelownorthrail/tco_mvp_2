@@ -64,10 +64,26 @@ main { max-width: 1280px; margin: 0 auto; padding: 0 16px 16px; }
 .loco-filter input { width: auto; margin: 0; accent-color: var(--brand); }
 .loco-filter label.locked { cursor: default; color: var(--muted); }
 
+/* Block "Zentrale Inputs" oberhalb der Lok-Tabelle */
+.block-title { margin: 20px 0 8px; font-size: 15px; font-weight: 600; color: var(--brand); }
+.block-title .muted { margin-left: 6px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.central-inputs { padding: 4px 16px 12px; border-top: 3px solid var(--brand); }
+.central-inputs .block-title { margin: 10px 0 4px; }
+.central-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 4px 32px; }
+.central-group h3 {
+  margin: 10px 0 4px; padding-bottom: 4px; border-bottom: 1px solid var(--line);
+  font-size: 12px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .04em;
+}
+.central-row { display: grid; grid-template-columns: 1fr 92px 96px; gap: 10px; align-items: center; padding: 3px 0; }
+.central-row .calc { text-align: right; padding-right: 7px; }
+.central-row .unit { color: var(--muted); }
+.central-row.indent-1 { padding-left: 14px; color: var(--muted); font-size: 13px; box-shadow: inset 2px 0 0 #000; }
+
 .table-wrap { overflow-x: clip; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 
 table { width: 100%; border-collapse: collapse; min-width: 980px; }
-col.c-label { width: 30%; }
+col.c-label { width: 34%; }
 col.c-unit { width: 9%; }
 
 th, td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
@@ -166,5 +182,6 @@ input.changed, .swatch.changed { border-color: var(--brand); box-shadow: inset 3
   table { min-width: 0; font-size: 11px; }
   input { border: none; background: transparent; width: auto; padding: 0; }
   .chart-card { break-inside: avoid; border: none; padding: 0; }
+  .central-inputs { break-inside: avoid; border: 1px solid var(--line); }
   .chart-card, .chart-card * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

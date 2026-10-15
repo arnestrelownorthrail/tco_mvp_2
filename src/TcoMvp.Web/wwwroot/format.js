@@ -8,10 +8,10 @@
   /** 0.3 → "30%" (für dynamische Beschriftungen wie in Betriebskosten!D17) */
   function pct0(v) { return `${Math.round(v * 100)}%`; }
 
-  /** Anzeige berechneter Felder: Prozent ohne Nachkommastellen, sonst row.digits (Standard 2). */
+  /** Anzeige berechneter Felder: Prozent ohne Nachkommastellen und ohne %-Zeichen (steht in der Einheit), sonst row.digits (Standard 2). */
   function formatValue(row, v) {
     if (v === null || v === undefined || Number.isNaN(v)) return "";
-    return row.pct ? nf(0).format(v * 100) + " %" : nf(row.digits ?? 2).format(v);
+    return row.pct ? nf(0).format(v * 100) : nf(row.digits ?? 2).format(v);
   }
 
   /** Wert → Text im Eingabefeld (Prozentfelder in %, Dezimalkomma, ohne Tausenderpunkte). */
